@@ -22,6 +22,7 @@ var webCmd = &cli.Command{
 		},
 	},
 	Action: func(ctx *cli.Context) error {
+		//web.Prefix = "/api/v1"
 		return web.Start(listenAddr)
 	},
 }

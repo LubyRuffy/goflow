@@ -22,15 +22,15 @@
         input[type=button] {font-size: 17px;font-family: 'Source Sans Pro', sans-serif;border:none;border-radius:5px;display:inline-block;padding:6px 18px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;;text-align:center;cursor:pointer;white-space:nowrap;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#04AA6D;color:#ffffff}
 
     </style>
-<!--    <link rel="stylesheet" href="/public/assets/libs//highlight.js/default.min.css">-->
+<!--    <link rel="stylesheet" href="{{.}}/public/assets/libs//highlight.js/default.min.css">-->
 </head>
 <body>
 <div style="width:100%">workflow:
     <input id="workflow" type="text" size="80" cols="5" value="fofa(`title=test`) & to_int(`port`) & sort(`port`) & [cut(`port`) | cut(`ip`)]"/>
     <input type="button" value="run" onclick="run()"/>
 </div>
-<script src="/public/assets/libs/mermaid/mermaid.min.js"></script>
-<!--<script src="/public/assets/libs/highlight.js/highlight.min.js"></script>-->
+<script src="{{.}}/public/assets/libs/mermaid/mermaid.min.js"></script>
+<!--<script src="{{.}}/public/assets/libs/highlight.js/highlight.min.js"></script>-->
 
 <div class="mermaid" id="mermaid">
 {{ . }}
@@ -65,7 +65,7 @@
 
 <script>
     function readTask(taskId) {
-        fetch('/fetchMsg?tid=' + taskId, {
+        fetch('{{.}}/fetchMsg?tid=' + taskId, {
             method: 'get',
         }).then(response => response.json())
             .then(jsonData => {
@@ -108,7 +108,7 @@
         document.getElementById("report").innerHTML = "";
         document.getElementById("message").innerHTML = "";
 
-        fetch('/run', {
+        fetch('{{.}}/run', {
             method: 'post',
             body: document.getElementById("workflow").value.trim()
         }).then(response => response.json())
@@ -123,7 +123,7 @@
     }
     // 解析
     function doParse() {
-        fetch('/parse', {
+        fetch('{{.}}/parse', {
             method: 'post',
             body: document.getElementById("workflow").value.trim()
         }).then(response => response.json())

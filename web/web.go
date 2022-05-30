@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/lubyruffy/gofofa"
 	"io/ioutil"
 	"log"
@@ -21,10 +22,11 @@ import (
 
 //go:embed public
 var webFs embed.FS
+var Prefix string // 路由前缀
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFS(webFs, "public/index.html"))
-	tmpl.Execute(w, "")
+	tmpl.Execute(w, Prefix)
 }
 
 func genMermaidCode(ast *workflowast.Parser, code string) (s string, err error) {
@@ -221,14 +223,23 @@ func fetchMsg(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Start 启动服务器
-func Start(addr string) error {
+// AppendToMuxRouter 附加到路由注册中
+func AppendToMuxRouter(router *mux.Router, prefix string) {
+	// 静态资源
+	router.PathPrefix(prefix + "/public/").Handler(
+		http.StripPrefix(prefix+"/",
+			http.FileServer(http.FS(webFs)),
+		),
+	)
+
 	// 默认首页
-	http.HandleFunc("/", handler)
-	http.HandleFunc("/parse", parse)
-	http.HandleFunc("/run", run)
-	http.HandleFunc("/fetchMsg", fetchMsg)
-	http.HandleFunc("/file", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc(prefix+"/", handler)
+
+	// 任务
+	router.HandleFunc(prefix+"/parse", parse)
+	router.HandleFunc(prefix+"/run", run)
+	router.HandleFunc(prefix+"/fetchMsg", fetchMsg)
+	router.HandleFunc(prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
 		fn := filepath.Base(r.FormValue("url"))
 		f := filepath.Join(os.TempDir(), fn)
 		needRawFilename := false
@@ -244,11 +255,13 @@ func Start(addr string) error {
 		}
 		http.ServeFile(w, r, f)
 	})
+}
 
-	// 静态资源
-	http.Handle("/public/", http.StripPrefix("/",
-		http.FileServer(http.FS(webFs))))
+// Start 启动服务器
+func Start(addr string) error {
+	router := mux.NewRouter()
+	AppendToMuxRouter(router, Prefix)
 
 	logrus.Println("listen at: ", addr)
-	return http.ListenAndServe(addr, nil)
+	return http.ListenAndServe(addr, router)
 }

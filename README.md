@@ -96,14 +96,15 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 
 -   用一个复杂的语句来验证任务列表：
 ```
-./fofa pipeline -t a.html 'fofa("body=icon && body=link", "body,host,ip,port", 500) & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body") & flat("icon_tag") & sort() & uniq(true) & sort("count") & zq("tail 10")'
+'fofa("body=icon && body=link", "body,host,ip,port", 500) & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body") & flat("icon_tag") & sort() & uniq(true) & sort("count") & zq("tail 10")'
 ```
 
 -   生成两个饼图并且截图：
 ```
-./fofa pipeline -t a.html 'fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | flat("country") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | zq("tail 10") & screenshot("host") & to_excel()]'
+'fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | flat("country") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | zq("tail 10") & screenshot("host") & to_excel()]'
 ```
 
 -   四个并行：
 ```
-fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | flat("country") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | zq("tail 1") & screenshot("host") & to_excel() | to_sqlite("tbl", "host,ip,port")]```
+fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | flat("country") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | zq("tail 1") & screenshot("host") & to_excel() | to_sqlite("tbl", "host,ip,port")]
+```
