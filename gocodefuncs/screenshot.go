@@ -19,7 +19,7 @@ import (
 type screenshotParam struct {
 	URLField  string `json:"urlField"`  // url的字段名称，默认是url
 	Timeout   int    `json:"timeout"`   // 整个浏览器操作超时
-	Quality   int    `json:"quality"`   // 截图质量
+	Workers   int    `json:"workers"`   // 并发限制
 	SaveField string `json:"saveField"` // 保存截图地址的字段
 }
 
@@ -98,10 +98,13 @@ func ScreenShot(p Runner, params map[string]interface{}) *FuncResult {
 	if options.Timeout == 0 {
 		options.Timeout = 30
 	}
+	if options.Workers == 0 {
+		options.Workers = 5
+	}
 
 	var artifacts []*Artifact
 
-	wp := workerpool.New(5)
+	wp := workerpool.New(options.Workers)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		err = utils.EachLine(p.GetLastFile(), func(line string) error {

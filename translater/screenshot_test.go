@@ -12,6 +12,7 @@ func TestLoad_screenshot(t *testing.T) {
 	"urlField": "host",
 	"saveField": "screenshot_filepath",
 	"timeout": 30,
+	"workers": 5,
 })
 `,
 		workflowast.NewParser().MustParse(`screenshot("host")`))
@@ -21,6 +22,7 @@ func TestLoad_screenshot(t *testing.T) {
 	"urlField": "url",
 	"saveField": "screenshot_filepath",
 	"timeout": 30,
+	"workers": 5,
 })
 `,
 		workflowast.NewParser().MustParse(`screenshot()`))
@@ -30,6 +32,7 @@ func TestLoad_screenshot(t *testing.T) {
 	"urlField": "url",
 	"saveField": "screenshot_filepath",
 	"timeout": 30,
+	"workers": 5,
 })
 `,
 		workflowast.NewParser().MustParse(`screenshot("")`))
@@ -39,6 +42,7 @@ func TestLoad_screenshot(t *testing.T) {
 	"urlField": "host",
 	"saveField": "sc_filepath",
 	"timeout": 30,
+	"workers": 5,
 })
 `,
 		workflowast.NewParser().MustParse(`screenshot("host", "sc_filepath")`))
@@ -48,8 +52,19 @@ func TestLoad_screenshot(t *testing.T) {
 	"urlField": "host",
 	"saveField": "sc_filepath",
 	"timeout": 1,
+	"workers": 5,
 })
 `,
 		workflowast.NewParser().MustParse(`screenshot("host", "sc_filepath", 1)`))
+
+	assert.Equal(t,
+		`Screenshot(GetRunner(), map[string]interface{}{
+	"urlField": "host",
+	"saveField": "sc_filepath",
+	"timeout": 1,
+	"workers": 10,
+})
+`,
+		workflowast.NewParser().MustParse(`screenshot("host", "sc_filepath", 1, 10)`))
 
 }

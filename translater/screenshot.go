@@ -13,6 +13,7 @@ func screenshotHook(fi *workflowast.FuncInfo) string {
 	"urlField": "{{.URLField}}",
 	"saveField": "{{.SaveField}}",
 	"timeout": {{.TimeOut}},
+	"workers": {{.Workers}},
 })`)
 
 	urlField := "url"
@@ -32,15 +33,22 @@ func screenshotHook(fi *workflowast.FuncInfo) string {
 		timeOut = int(fi.Params[2].Int64())
 	}
 
+	workers := 5
+	if len(fi.Params) > 3 {
+		workers = int(fi.Params[3].Int64())
+	}
+
 	var tpl bytes.Buffer
 	err := tmpl.Execute(&tpl, struct {
 		URLField  string
 		SaveField string
 		TimeOut   int
+		Workers   int
 	}{
 		URLField:  urlField,
 		SaveField: saveField,
 		TimeOut:   timeOut,
+		Workers:   workers,
 	})
 	if err != nil {
 		panic(err)

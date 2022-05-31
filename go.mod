@@ -13,7 +13,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.7.5-0.20200711200521-98cb6bf42e08
-	github.com/lubyruffy/gofofa v0.0.6
+	github.com/lubyruffy/gofofa v0.0.7
 	github.com/mattn/go-sqlite3 v1.14.13
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8

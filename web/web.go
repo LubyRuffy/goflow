@@ -26,6 +26,7 @@ var webFs embed.FS
 var (
 	Prefix        string //
 	getObjectHook = defaultGetObject
+	newPipeRunner = defaultNewPipeRunner
 )
 
 func defaultGetObject(name string) (interface{}, bool) {
@@ -35,6 +36,15 @@ func defaultGetObject(name string) (interface{}, bool) {
 // SetObjectHook 底层获取数据的回调接口
 func SetObjectHook(f func(name string) (interface{}, bool)) {
 	getObjectHook = f
+}
+
+func defaultNewPipeRunner() *goflow.PipeRunner {
+	return goflow.New()
+}
+
+// SetNewPipeRunner 创建Runner，上层可以自行注册自定义函数
+func SetNewPipeRunner(f func() *goflow.PipeRunner) {
+	newPipeRunner = f
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +149,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	tm := globalTaskMonitor.new(string(workflow))
 
 	go func() {
-		p := goflow.New().WithAST(ast).WithHooks(&goflow.Hooks{
+		p := newPipeRunner().WithAST(ast).WithHooks(&goflow.Hooks{
 			OnWorkflowStart: func(funcName string, callID int) {
 				tm.callIDRunning = callID
 				tm.addMsg(fmt.Sprintf("workflow start: %s, %s, %d", ast.CallList[callID-1].Name, funcName, callID))

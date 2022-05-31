@@ -148,10 +148,17 @@ func (p *PipeRunner) fork(pipe string) error {
 }
 
 // registerFunctions 注册用户自定义函数，做一层PipeTask封装
+// func为可选长度，如果是两个，说明只注册底层函数，如果是4个，说明要注册翻译函数，让workflow使用
 func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 	for i := range funcs {
 		funcName := funcs[i][0].(string)
 		funcBody := funcs[i][1].(func(gocodefuncs.Runner, map[string]interface{}) *gocodefuncs.FuncResult)
+
+		if len(funcs[i]) > 3 {
+			translater.Register(funcs[i][2].(string),
+				funcs[i][3].(func(fi *workflowast.FuncInfo) string))
+		}
+
 		p.gf.Register(funcName, func(runner gocodefuncs.Runner, params map[string]interface{}) {
 			callID := 1
 			node := p
