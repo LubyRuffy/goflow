@@ -30,14 +30,14 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
                 -   value 参数值
     -   RemoveField
         -   name 字段的名称
--   支持缩写模式: ```./fofa pipeline 'fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")'```
+-   支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 -   （未完成）每一步都支持配置是否保留文件
 -   （未完成）函数可以进行统一化的参数配置
 -   框架支持内嵌golang注册函数的扩展
--   （未完成）框架支持动态加载扩展，golang的脚本语言
+-   框架支持动态加载扩展，golang的脚本语言
 -   支持simple模式，将pipeline的模式转换成完整的golang代码
--   （未完成）输出到不同的目标
--   （未完成）可以保持中间数据，如aggs结果；不参与主流程，只用于统计，方便后续生成报表
+-   输出到不同的目标
+-   可以保持中间数据，如aggs结果；不参与主流程，只用于统计，方便后续生成报表
 -   可以形成报表
 -   完整的日志记录
 -   支持可视化流程展示
@@ -60,7 +60,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     -   fofa(query, size, fields) 从fofa获取数据
     -   load(file) 从文件加载数据
     -   gen(jsonstring) 生成一行json，调试用
-    -   scan_port(hosts,ports) 扫描端口
+    -   scan_port(hosts,ports) 扫描端口（调用nmap）
 -   目标地址命令：
     -   to_mysql(table,dsn,fields) 入库mysql，table必须填写；dns可选；如果没有那么就只生成sql文件；fields可选，如果没有，那么就从数据库中进行获取，没有配置dsn的话按照全字段
     -   to_sqlite(table,dsn,fields) 入库sqlite，table必须填写；dns可选；如果没有那么就只生成sql文件；fields可选，如果没有，那么就从数据库中进行获取，没有配置dsn的话按照全字段
@@ -81,12 +81,14 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     -   fork(pipelines) 原始的手动创建分支的方式
     -   screenshot(url) 网页截图
     -   render_dom(url) 渲染dom生成html入到数据中
+    -   concat_add(field+":"+field2, newfield) 拼凑字符串，生成新的字段
+    -   fix_url(host) 解决host到url的转换
 -   通过 ```[ cmd1() | cmd2() ]``` 创建分支
     -   分支的数据留是分开的，比如```fofa(`port=80`,`ip,port`) & [ cut(`ip`) | cut(`port`) ]```将会生成两条数据流
 -   能够追踪执行进度
     -   日志
     -   单个进度
-    -   （未完成）记录错误
+    -   记录错误
 
 ## 设计原则：
 -   每一个底层函数对于奔溃的错误直接panic就好，由上层统一进行处理；

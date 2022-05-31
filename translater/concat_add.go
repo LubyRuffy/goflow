@@ -7,7 +7,7 @@ import (
 
 func concatAddHook(fi *workflowast.FuncInfo) string {
 	return `ZqQuery(GetRunner(), map[string]interface{}{
-    "query": ` + strconv.Quote(`yield put `+fi.Params[1].RawString()+`:=`+fi.Params[0].RawString()) + `,
+    "query": ` + strconv.Quote(`put `+fi.Params[1].RawString()+`:=`+fi.Params[0].RawString()) + `,
 })`
 }
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>GoFOFA Run Pipeline</title>
     <style>
-        input[type=text] {
+        input[type=textarea] {
             width: 80%;
             margin: 8px 0;
             display: inline-block;
@@ -18,6 +18,7 @@
             padding-right: 20px;
             padding-top: 12px;
             padding-bottom: 12px;
+            font-size: 18px;
         }
         input[type=button] {font-size: 17px;font-family: 'Source Sans Pro', sans-serif;border:none;border-radius:5px;display:inline-block;padding:6px 18px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;;text-align:center;cursor:pointer;white-space:nowrap;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-color:#04AA6D;color:#ffffff}
 
@@ -26,7 +27,7 @@
 </head>
 <body>
 <div style="width:100%">workflow:
-    <input id="workflow" type="text" size="80" cols="5" value="fofa(`title=test`) & to_int(`port`) & sort(`port`) & [cut(`port`) | cut(`ip`)]"/>
+    <input id="workflow" type="textarea" size="80" cols="5" value="fofa(`title=test`) & to_int(`port`) & sort(`port`) & [cut(`port`) | cut(`ip`)]"/>
     <input type="button" value="run" onclick="run()"/>
 </div>
 <script src="{{.}}/public/assets/libs/mermaid/mermaid.min.js"></script>

@@ -5,6 +5,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"net"
 	"os"
 	"strings"
 )
@@ -25,7 +26,11 @@ func UrlFix(p Runner, params map[string]interface{}) *FuncResult {
 		return utils.EachLine(p.GetLastFile(), func(line string) error {
 			v := gjson.Get(line, field).String()
 			if !strings.Contains(v, "://") {
-				v = "http://" + gjson.Get(line, field).String()
+				host, port, _ := net.SplitHostPort(v)
+				if port == "80" {
+					v = host
+				}
+				v = "http://" + v
 			}
 			line, err := sjson.Set(line, field, v)
 			if err != nil {

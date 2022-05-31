@@ -2,7 +2,7 @@ package translater
 
 import "github.com/LubyRuffy/goflow/workflowast"
 
-func urlfixHook(fi *workflowast.FuncInfo) string {
+func fixURLHook(fi *workflowast.FuncInfo) string {
 	urlField := "url"
 	if len(fi.Params) > 0 {
 		urlField = fi.Params[0].RawString()
@@ -13,5 +13,5 @@ func urlfixHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	Register("urlfix", urlfixHook) // 补充完善url
+	Register("fix_url", fixURLHook) // 补充完善url
 }
