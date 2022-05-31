@@ -2,6 +2,7 @@ package goflow
 
 import (
 	"fmt"
+	"github.com/LubyRuffy/goflow/utils"
 	"os"
 	"reflect"
 	"sync"
@@ -10,7 +11,6 @@ import (
 	"github.com/LubyRuffy/goflow/gocodefuncs"
 
 	"github.com/LubyRuffy/goflow/coderunner"
-	"github.com/LubyRuffy/goflow/internal/utils"
 	"github.com/LubyRuffy/goflow/translater"
 	"github.com/LubyRuffy/goflow/workflowast"
 	"github.com/sirupsen/logrus"

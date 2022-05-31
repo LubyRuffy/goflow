@@ -3,7 +3,7 @@ package gocodefuncs
 import (
 	"errors"
 	"fmt"
-	"github.com/LubyRuffy/goflow/internal/utils"
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"os"

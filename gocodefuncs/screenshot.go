@@ -2,12 +2,12 @@ package gocodefuncs
 
 import (
 	"fmt"
+	"github.com/LubyRuffy/goflow/utils"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/LubyRuffy/goflow/internal/utils"
 	"github.com/chromedp/chromedp"
 	"github.com/gammazero/workerpool"
 	"github.com/mitchellh/mapstructure"

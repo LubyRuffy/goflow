@@ -2,10 +2,10 @@ package gocodefuncs
 
 import (
 	"fmt"
+	"github.com/LubyRuffy/goflow/utils"
 	"os"
 	"strings"
 
-	"github.com/LubyRuffy/goflow/internal/utils"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
 	"github.com/gammazero/workerpool"

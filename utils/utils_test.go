@@ -15,7 +15,7 @@ func TestEachLine(t *testing.T) {
 	var err error
 
 	// 成功
-	err = EachLine("../../data/test.json", func(line string) error {
+	err = EachLine("../data/test.json", func(line string) error {
 		t.Logf(line)
 		return nil
 	})
@@ -26,7 +26,7 @@ func TestEachLine(t *testing.T) {
 	assert.True(t, os.IsNotExist(err))
 
 	// 异常
-	err = EachLine("../../data/test.json", func(line string) error {
+	err = EachLine("../data/test.json", func(line string) error {
 		return errors.New("panic")
 	})
 	assert.Contains(t, err.Error(), "panic")
@@ -86,7 +86,7 @@ func TestJSONLineFields(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	assert.True(t, FileExists("../../data/test.json"))
+	assert.True(t, FileExists("../data/test.json"))
 	assert.False(t, FileExists("nevercouldexists"))
 }
 

@@ -2,7 +2,7 @@ package gocodefuncs
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/goflow/internal/utils"
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/go-echarts/go-echarts/v2/render"

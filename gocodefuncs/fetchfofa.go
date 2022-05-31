@@ -2,7 +2,7 @@ package gocodefuncs
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/goflow/internal/utils"
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/lubyruffy/gofofa"
 	"github.com/lubyruffy/gofofa/pkg/outformats"
 	"github.com/mitchellh/mapstructure"

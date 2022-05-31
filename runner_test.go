@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"github.com/LubyRuffy/goflow/gocodefuncs"
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/xuri/excelize/v2"
 	"html/template"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LubyRuffy/goflow/internal/utils"
 	"github.com/LubyRuffy/goflow/workflowast"
 	"github.com/lubyruffy/gofofa"
 	"github.com/stretchr/testify/assert"

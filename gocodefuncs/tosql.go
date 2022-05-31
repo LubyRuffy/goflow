@@ -3,7 +3,7 @@ package gocodefuncs
 import (
 	"database/sql"
 	"fmt"
-	"github.com/LubyRuffy/goflow/internal/utils"
+	"github.com/LubyRuffy/goflow/utils"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mitchellh/mapstructure"

@@ -54,7 +54,7 @@ package workflowast
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/goflow/internal/utils"
+	"github.com/LubyRuffy/goflow/utils"
 	parsec "github.com/prataprc/goparsec"
 	"strconv"
 	"strings"
