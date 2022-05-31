@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/LubyRuffy/goflow/gocodefuncs"
 	"github.com/gorilla/mux"
 	"github.com/lubyruffy/gofofa"
 	"io/ioutil"
@@ -22,7 +23,19 @@ import (
 
 //go:embed public
 var webFs embed.FS
-var Prefix string // 路由前缀
+var (
+	Prefix        string //
+	getObjectHook = defaultGetObject
+)
+
+func defaultGetObject(name string) (interface{}, bool) {
+	return nil, false
+}
+
+// SetObjectHook 底层获取数据的回调接口
+func SetObjectHook(f func(name string) (interface{}, bool)) {
+	getObjectHook = f
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFS(webFs, "public/index.html"))
@@ -126,12 +139,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	tm := globalTaskMonitor.new(string(workflow))
 
 	go func() {
-		fofaCli, err := gofofa.NewClient()
-		if err != nil {
-			panic(fmt.Errorf("fofa connect err: %w", err))
-		}
-
-		p := goflow.New(goflow.WithAST(ast), goflow.WithObject("fofacli", fofaCli),
+		p := goflow.New(goflow.WithAST(ast),
 			goflow.WithHooks(&goflow.Hooks{
 				OnWorkflowStart: func(funcName string, callID int) {
 					tm.callIDRunning = callID
@@ -142,6 +150,21 @@ func run(w http.ResponseWriter, r *http.Request) {
 				},
 				OnLog: func(level logrus.Level, format string, args ...interface{}) {
 					tm.addMsg(fmt.Sprintf("[%s] %s", level.String(), fmt.Sprintf(format, args...)))
+				},
+				OnGetObject: func(name string) (interface{}, bool) {
+					v, ok := getObjectHook(name)
+					if ok {
+						return v, ok
+					}
+					switch name {
+					case gocodefuncs.FofaObjectName:
+						fofaCli, err := gofofa.NewClient()
+						if err != nil {
+							panic(fmt.Errorf("fofa connect err: %w", err))
+						}
+						return fofaCli, true
+					}
+					return nil, false
 				},
 			}))
 		tm.runner = p

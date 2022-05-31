@@ -41,6 +41,7 @@ type Hooks struct {
 	OnWorkflowFinished func(pt *PipeTask)                                           // 一个workflow完成时的处理
 	OnWorkflowStart    func(funcName string, callID int)                            // 一个workflow完成时的处理
 	OnLog              func(level logrus.Level, format string, args ...interface{}) // 日志通知
+	OnGetObject        func(name string) (interface{}, bool)                        // 底层要获取上层定义的对象
 }
 
 // PipeRunner pipe运行器
@@ -62,6 +63,9 @@ type PipeRunner struct {
 
 // GetObject 获取全局变量
 func (p *PipeRunner) GetObject(name string) (interface{}, bool) {
+	if v, ok := p.hooks.OnGetObject(name); ok {
+		return v, ok
+	}
 	return p.objects.Load(name)
 }
 

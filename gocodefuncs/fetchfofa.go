@@ -17,6 +17,10 @@ type FetchFofaParams struct {
 	Fields string
 }
 
+var (
+	FofaObjectName = "fofaCli"
+)
+
 // FetchFofa 从fofa获取数据
 func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	var err error
@@ -35,11 +39,11 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	fields := strings.Split(options.Fields, ",")
 
 	var res [][]string
-	fofacli, ok := p.GetObject("fofacli")
+	fofaCli, ok := p.GetObject(FofaObjectName)
 	if !ok {
 		panic(fmt.Errorf("HostSearch failed: doesn't set fofacli"))
 	}
-	res, err = fofacli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields)
+	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields)
 	if err != nil {
 		panic(fmt.Errorf("HostSearch failed: %w", err))
 	}
@@ -56,4 +60,8 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	return &FuncResult{
 		OutFile: fn,
 	}
+}
+
+func init() {
+	registerObject(FofaObjectName, "shoule be gofofa.Client")
 }

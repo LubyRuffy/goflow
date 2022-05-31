@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/LubyRuffy/goflow"
+	"github.com/LubyRuffy/goflow/gocodefuncs"
 	"github.com/LubyRuffy/goflow/internal/utils"
 	"github.com/LubyRuffy/goflow/translater"
 	"github.com/LubyRuffy/goflow/workflowast"
@@ -80,7 +81,7 @@ func pipelineAction(ctx *cli.Context) error {
 		panic(fmt.Errorf("fofa connect err: %w", err))
 	}
 
-	pr := goflow.New(goflow.WithObject("fofacli", fofaCli))
+	pr := goflow.New(goflow.WithObject(gocodefuncs.FofaObjectName, fofaCli))
 	_, err = pr.Run(pipelineContent)
 	if err != nil {
 		panic(err)
