@@ -224,22 +224,22 @@ func fetchMsg(w http.ResponseWriter, r *http.Request) {
 }
 
 // AppendToMuxRouter 附加到路由注册中
-func AppendToMuxRouter(router *mux.Router, prefix string) {
+func AppendToMuxRouter(router *mux.Router) {
 	// 静态资源
-	router.PathPrefix(prefix + "/public/").Handler(
-		http.StripPrefix(prefix+"/",
+	router.PathPrefix(Prefix + "/public/").Handler(
+		http.StripPrefix(Prefix+"/",
 			http.FileServer(http.FS(webFs)),
 		),
 	)
 
 	// 默认首页
-	router.HandleFunc(prefix+"/", handler)
+	router.HandleFunc(Prefix+"/", handler)
 
 	// 任务
-	router.HandleFunc(prefix+"/parse", parse)
-	router.HandleFunc(prefix+"/run", run)
-	router.HandleFunc(prefix+"/fetchMsg", fetchMsg)
-	router.HandleFunc(prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc(Prefix+"/parse", parse)
+	router.HandleFunc(Prefix+"/run", run)
+	router.HandleFunc(Prefix+"/fetchMsg", fetchMsg)
+	router.HandleFunc(Prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
 		fn := filepath.Base(r.FormValue("url"))
 		f := filepath.Join(os.TempDir(), fn)
 		needRawFilename := false
@@ -260,7 +260,7 @@ func AppendToMuxRouter(router *mux.Router, prefix string) {
 // Start 启动服务器
 func Start(addr string) error {
 	router := mux.NewRouter()
-	AppendToMuxRouter(router, Prefix)
+	AppendToMuxRouter(router)
 
 	logrus.Println("listen at: ", addr)
 	return http.ListenAndServe(addr, router)
