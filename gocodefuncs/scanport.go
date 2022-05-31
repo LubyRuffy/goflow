@@ -9,17 +9,17 @@ import (
 	"strings"
 )
 
-type scanPortParam struct {
+type ScanPortParam struct {
 	Targets string `json:"targets"` // 扫描目标
 	Ports   string `json:"ports"`   // 扫描端口
 }
 
 // ScanPort 扫描端口
 // 参数: hosts/ports
-// 输出格式：{"ip":"117.161.125.154","port":80,"protocol":"tcp","service":"http","hostnames":"fofa.info"}
+// 输出格式：{"ip":"117.161.125.154","port":80,"base_protocol":"tcp","service":"http","hostnames":"fofa.info"}
 func ScanPort(p Runner, params map[string]interface{}) *FuncResult {
 	var err error
-	var options scanPortParam
+	var options ScanPortParam
 	if err = mapstructure.Decode(params, &options); err != nil {
 		panic(fmt.Errorf("screenShot failed: %w", err))
 	}
@@ -67,7 +67,7 @@ func ScanPort(p Runner, params map[string]interface{}) *FuncResult {
 			}
 			for _, addr := range host.Addresses {
 				for _, port := range host.Ports {
-					_, err := f.WriteString(fmt.Sprintf(`{"ip":"%s","port":%d,"protocol":"%s","service":"%s","hostnames":"%s"}`+"\n",
+					_, err := f.WriteString(fmt.Sprintf(`{"ip":"%s","port":%d,"base_protocol":"%s","service":"%s","hostnames":"%s"}`+"\n",
 						addr, port.ID, port.Protocol, port.Service.Name, strings.Join(hostnames, ",")))
 					if err != nil {
 						return err

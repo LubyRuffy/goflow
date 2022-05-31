@@ -96,7 +96,7 @@ func pipelineAction(ctx *cli.Context) error {
 	}
 
 	if len(pipelineTaskOut) > 0 {
-		err = ioutil.WriteFile(pipelineTaskOut, []byte(pr.DumpTasks(false)), 0666)
+		err = ioutil.WriteFile(pipelineTaskOut, []byte(pr.DumpTasks(false, "")), 0666)
 		if err != nil {
 			panic(err)
 		}

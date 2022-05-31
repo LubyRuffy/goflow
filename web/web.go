@@ -182,7 +182,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 			tm.addMsg("run err: " + err.Error())
 		}
 
-		tm.html = p.DumpTasks(true)
+		tm.html = p.DumpTasks(true, Prefix)
 		tm.addMsg("<finished>")
 		tm.finish()
 	}()

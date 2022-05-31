@@ -314,7 +314,7 @@ func TestPipeRunner_DumpTasks(t *testing.T) {
 	p := New()
 	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"a\":\"1\",\"b\":2}") & [cut("a") | cut("b")]`))
 	assert.Nil(t, err)
-	c := p.DumpTasks(false)
+	c := p.DumpTasks(false, "")
 	assert.Contains(t, c, "fork")
 
 	// 截图
@@ -327,8 +327,15 @@ func TestPipeRunner_DumpTasks(t *testing.T) {
 	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`))
 	assert.Nil(t, err)
 	assert.Equal(t, "image/png", p.LastTask.Result.Artifacts[0].FileType)
-	c = p.DumpTasks(true)
+	c = p.DumpTasks(true, "")
 	assert.Contains(t, c, "<img")
+
+	p.Close()
+	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`))
+	assert.Nil(t, err)
+	assert.Equal(t, "image/png", p.LastTask.Result.Artifacts[0].FileType)
+	c = p.DumpTasks(true, "/abcprefix")
+	assert.Contains(t, c, "/abcprefix/")
 
 }
 

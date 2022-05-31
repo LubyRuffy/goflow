@@ -8,7 +8,7 @@ import (
 )
 
 // DumpTasks tasks dump to html
-func (p *PipeRunner) DumpTasks(server bool) string {
+func (p *PipeRunner) DumpTasks(server bool, prefix string) string {
 	t, err := template.New("tasks").Funcs(template.FuncMap{
 		"toFileName": func(u string) string {
 			return filepath.Base(u)
@@ -18,7 +18,7 @@ func (p *PipeRunner) DumpTasks(server bool) string {
 		},
 		"safeURL": func(u string, t string) template.URL {
 			if server {
-				return template.URL("/file?url=" + filepath.Base(u) + "&t=" + t)
+				return template.URL(prefix + "/file?url=" + filepath.Base(u) + "&t=" + t)
 			}
 			u = strings.ReplaceAll(u, "\\", "/")
 			return template.URL(u)
