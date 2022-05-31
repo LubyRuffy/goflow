@@ -276,24 +276,24 @@ func assertPipeRunnerContent(t *testing.T, p *PipeRunner, content string) {
 	assertFileContent(t, p.LastFile, content)
 }
 
-func TestPipeRunner_urlfix(t *testing.T) {
+func TestPipeRunner_fix_url(t *testing.T) {
 	var err error
 	var code string
 
 	p := New()
-	code, err = workflowast.NewParser().Parse(`gen("{\"url\":\"1.1.1.1:81\"}") & urlfix()`)
+	code, err = workflowast.NewParser().Parse(`gen("{\"url\":\"1.1.1.1:81\"}") & fix_url()`)
 	assert.Nil(t, err)
 	_, err = p.Run(code)
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"url\":\"http://1.1.1.1:81\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & urlfix("host")`))
+	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("host")`))
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"host\":\"http://1.1.1.1:81\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & urlfix("")`))
+	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("")`))
 	assert.Error(t, err)
 }
 
