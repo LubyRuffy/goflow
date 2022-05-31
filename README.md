@@ -110,3 +110,8 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 ```
 fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | flat("country") & sort() & uniq(true) & sort("count") & zq("tail 10") & chart("pie") | zq("tail 1") & screenshot("host") & to_excel() | to_sqlite("tbl", "host,ip,port")]
 ```
+
+-   goby里面的实现：
+```
+scan_port(`10.10.10.0/24`, `80,443,22,445,3389`) & concat_add(`ip+":"+port`,"host") & grab_protocol() & if_add(`protocol=="http" OR protocol=="https"`,`url`,`protocol+"://"+ip+":"+port`) & fix_url("url") & screenshot() & crawler_web()
+```

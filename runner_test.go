@@ -293,6 +293,16 @@ func TestPipeRunner_fix_url(t *testing.T) {
 	assertPipeRunnerContent(t, p, "{\"host\":\"http://1.1.1.1:81\"}\n")
 
 	p = New()
+	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"url\":\"1.1.1.1:80\"}") & fix_url()`))
+	assert.Nil(t, err)
+	assertPipeRunnerContent(t, p, "{\"url\":\"http://1.1.1.1\"}\n")
+
+	p = New()
+	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"url\":\"https://1.1.1.1:443\"}") & fix_url()`))
+	assert.Nil(t, err)
+	assertPipeRunnerContent(t, p, "{\"url\":\"https://1.1.1.1\"}\n")
+
+	p = New()
 	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("")`))
 	assert.Error(t, err)
 }
