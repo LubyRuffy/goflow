@@ -42,6 +42,10 @@ func rawString(s string) string {
 		return s[1 : l-1]
 	case '"':
 		// 暂时不处理转义
+		s1, err := strconv.Unquote(s)
+		if err == nil {
+			return s1
+		}
 		return s[1 : l-1]
 	}
 	return s
