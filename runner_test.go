@@ -583,3 +583,46 @@ func TestPipeRunner_scanPort(t *testing.T) {
 	}
 
 }
+
+func TestPipeRunner_if_add(t *testing.T) {
+	p := New()
+	ast := workflowast.NewParser()
+	code := ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\"}`) & if_add(`has(protocol)`,`host`,`ip+\":\"+port`)")
+	_, err := p.Run(code)
+	assert.Nil(t, err)
+	d, err := utils.ReadFirstLineOfFile(p.LastFile)
+	assert.Nil(t, err)
+	assert.NotContains(t, utils.JSONLineFields(string(d)), "host")
+
+	p.Close()
+	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"http\"}`) & if_add(`has(protocol)`,`host`,`ip+\":\"+port`)")
+	_, err = p.Run(code)
+	assert.Nil(t, err)
+	d, err = utils.ReadFirstLineOfFile(p.LastFile)
+	assert.Nil(t, err)
+	assert.Contains(t, utils.JSONLineFields(string(d)), "host")
+
+	p.Close()
+	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"http\"}`) & if_add(`protocol==\"http\"`,`host`,`ip+\":\"+port`)")
+	_, err = p.Run(code)
+	assert.Nil(t, err)
+	d, err = utils.ReadFirstLineOfFile(p.LastFile)
+	assert.Nil(t, err)
+	assert.Contains(t, utils.JSONLineFields(string(d)), "host")
+
+	p.Close()
+	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"https\"}`) & if_add(`protocol==\"http\"`,`host`,`ip+\":\"+port`)")
+	_, err = p.Run(code)
+	assert.Nil(t, err)
+	d, err = utils.ReadFirstLineOfFile(p.LastFile)
+	assert.Nil(t, err)
+	assert.NotContains(t, utils.JSONLineFields(string(d)), "host")
+
+	p.Close()
+	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"https\"}`) & if_add(`protocol==\"http\" OR protocol==\"https\"`,`host`,`ip+\":\"+port`)")
+	_, err = p.Run(code)
+	assert.Nil(t, err)
+	d, err = utils.ReadFirstLineOfFile(p.LastFile)
+	assert.Nil(t, err)
+	assert.Contains(t, utils.JSONLineFields(string(d)), "host")
+}
