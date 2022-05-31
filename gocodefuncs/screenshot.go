@@ -5,7 +5,6 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -111,14 +110,16 @@ func ScreenShot(p Runner, params map[string]interface{}) *FuncResult {
 			wp.Submit(func() {
 				u := gjson.Get(line, options.URLField).String()
 				if len(u) == 0 {
-					return
+					// 没有字段，直接写回原始行
+					_, err = f.WriteString(line + "\n")
+					if err != nil {
+						panic(err)
+					}
 				}
-				if !strings.Contains(u, "://") {
-					u = "http://" + u
-				}
+
 				var size int
 				var sfn string
-				sfn, size, err = screenshotURL(p, u, &options)
+				sfn, size, err = screenshotURL(p, fixURL(u), &options)
 				if err != nil {
 					p.Warnf("screenshotURL failed: %s", err)
 					f.WriteString(line + "\n")
