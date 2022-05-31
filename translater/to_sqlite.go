@@ -24,5 +24,5 @@ func toSqilteHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("to_sqlite", toSqilteHook)
+	Register("to_sqlite", toSqilteHook)
 }

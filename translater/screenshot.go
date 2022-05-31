@@ -49,5 +49,5 @@ func screenshotHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("screenshot", screenshotHook) // screenshot 网页截图
+	Register("screenshot", screenshotHook) // screenshot 网页截图
 }

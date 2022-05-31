@@ -31,5 +31,5 @@ func toMysqlHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("to_mysql", toMysqlHook)
+	Register("to_mysql", toMysqlHook)
 }

@@ -17,5 +17,5 @@ func sortHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("sort", sortHook) // 排序
+	Register("sort", sortHook) // 排序
 }

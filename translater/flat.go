@@ -23,5 +23,5 @@ func flat(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("flat", flat)
+	Register("flat", flat)
 }

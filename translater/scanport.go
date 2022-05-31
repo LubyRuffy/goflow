@@ -38,5 +38,5 @@ func scanPortHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("scan_port", scanPortHook) // grep匹配再新增字段
+	Register("scan_port", scanPortHook) // grep匹配再新增字段
 }

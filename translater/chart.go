@@ -39,5 +39,5 @@ func chart(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("chart", chart)
+	Register("chart", chart)
 }

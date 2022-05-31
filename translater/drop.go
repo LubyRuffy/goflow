@@ -12,5 +12,5 @@ func dropHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("drop", dropHook) // 删除字段
+	Register("drop", dropHook) // 删除字段
 }

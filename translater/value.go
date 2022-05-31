@@ -12,5 +12,5 @@ func valueHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("value", valueHook) // 取值
+	Register("value", valueHook) // 取值
 }

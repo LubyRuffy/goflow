@@ -11,5 +11,5 @@ func excelHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("to_excel", excelHook) // excel
+	Register("to_excel", excelHook) // excel
 }

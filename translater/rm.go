@@ -24,5 +24,5 @@ func rmHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("rm", rmHook) // 删除字段
+	Register("rm", rmHook) // 删除字段
 }

@@ -27,5 +27,5 @@ func genHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("gen", genHook)
+	Register("gen", genHook)
 }

@@ -17,5 +17,5 @@ func uniqHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("uniq", uniqHook) // 排序
+	Register("uniq", uniqHook) // 排序
 }

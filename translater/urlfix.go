@@ -13,5 +13,5 @@ func urlfixHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("urlfix", urlfixHook) // 补充完善url
+	Register("urlfix", urlfixHook) // 补充完善url
 }

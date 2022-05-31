@@ -40,5 +40,5 @@ func fofaHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("fofa", fofaHook)
+	Register("fofa", fofaHook)
 }

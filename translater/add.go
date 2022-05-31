@@ -28,5 +28,5 @@ func addHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("add", addHook) // grep匹配再新增字段
+	Register("add", addHook) // grep匹配再新增字段
 }

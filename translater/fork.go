@@ -9,5 +9,5 @@ func forkHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("fork", forkHook) // fork
+	Register("fork", forkHook) // fork
 }

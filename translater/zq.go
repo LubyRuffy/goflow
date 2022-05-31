@@ -11,5 +11,5 @@ func zqHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("zq", zqHook) // grep匹配再新增字段
+	Register("zq", zqHook) // grep匹配再新增字段
 }

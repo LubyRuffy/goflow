@@ -27,5 +27,5 @@ func loadHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("load", loadHook)
+	Register("load", loadHook)
 }

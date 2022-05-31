@@ -12,5 +12,5 @@ func intHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("to_int", intHook) // 将某个字段转换为int类型
+	Register("to_int", intHook) // 将某个字段转换为int类型
 }

@@ -12,5 +12,5 @@ func cutHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("cut", cutHook) // 剪出要的字段
+	Register("cut", cutHook) // 剪出要的字段
 }

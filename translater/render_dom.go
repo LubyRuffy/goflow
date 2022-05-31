@@ -48,5 +48,5 @@ func renderdomHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("render_dom", renderdomHook) // screenshot 网页截图
+	Register("render_dom", renderdomHook) // screenshot 网页截图
 }

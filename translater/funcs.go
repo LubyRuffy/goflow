@@ -7,8 +7,8 @@ var (
 	Translators []string
 )
 
-// Load do nothing, only import translater
-func register(name string, f workflowast.FunctionTranslateHook) {
+// Register 注册翻译函数，从workflow的函数展开为底层gocode的完整代码
+func Register(name string, f workflowast.FunctionTranslateHook) {
 	Translators = append(Translators, name)
 	workflowast.RegisterFunction(name, f)
 }

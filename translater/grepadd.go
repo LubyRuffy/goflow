@@ -34,5 +34,5 @@ func grepAddHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("grep_add", grepAddHook) // grep匹配再新增字段
+	Register("grep_add", grepAddHook) // grep匹配再新增字段
 }

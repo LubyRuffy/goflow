@@ -23,5 +23,5 @@ func statsHook(fi *workflowast.FuncInfo) string {
 }
 
 func init() {
-	register("stats", statsHook) // 统计
+	Register("stats", statsHook) // 统计
 }
