@@ -81,7 +81,7 @@ func pipelineAction(ctx *cli.Context) error {
 		panic(fmt.Errorf("fofa connect err: %w", err))
 	}
 
-	pr := goflow.New(goflow.WithObject(gocodefuncs.FofaObjectName, fofaCli))
+	pr := goflow.New().WithObject(gocodefuncs.FofaObjectName, fofaCli)
 	_, err = pr.Run(pipelineContent)
 	if err != nil {
 		panic(err)

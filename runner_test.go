@@ -254,7 +254,7 @@ func TestLoad_fofa(t *testing.T) {
 	code := workflowast.NewParser().MustParse(`fofa("host=\"https://fofa1.info\"", "domain", 1)`)
 	fofacli, err = gofofa.NewClient(gofofa.WithURL(ts.URL))
 	assert.Nil(t, err)
-	p := New(WithObject("fofacli", fofacli))
+	p := New().WithObject(gocodefuncs.FofaObjectName, fofacli)
 
 	_, err = p.Run(code)
 	assert.Nil(t, err)
@@ -537,9 +537,9 @@ func TestPipeRunner_Run(t *testing.T) {
 		assert.Equal(t, ast.CallList[i].UUID, p.Tasks[i].CallID)
 	}
 
-	p = New(WithUserFunction([]interface{}{
+	p = New().WithUserFunction([]interface{}{
 		"FetchFofa", gocodefuncs.GenFofaFieldData,
-	}))
+	})
 
 	ast = workflowast.NewParser()
 	code = ast.MustParse("fofa(\"title=test\",\"host,ip,port,country\", 1000) & [flat(\"port\") & sort() & uniq(true) & sort(\"count\") & zq(\"tail 10\") & chart(\"pie\") | flat(\"country\") & sort() & uniq(true) & sort(\"count\") & zq(\"tail 10\") & chart(\"pie\") | zq(\"tail 1\") & screenshot(\"host\") & to_excel() | to_sqlite(\"tbl\", \"host,ip,port\")]")

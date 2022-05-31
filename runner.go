@@ -36,14 +36,6 @@ func (p *PipeTask) Close() {
 	p.Children = nil
 }
 
-// Hooks 消息通知
-type Hooks struct {
-	OnWorkflowFinished func(pt *PipeTask)                                           // 一个workflow完成时的处理
-	OnWorkflowStart    func(funcName string, callID int)                            // 一个workflow完成时的处理
-	OnLog              func(level logrus.Level, format string, args ...interface{}) // 日志通知
-	OnGetObject        func(name string) (interface{}, bool)                        // 底层要获取上层定义的对象
-}
-
 // PipeRunner pipe运行器
 type PipeRunner struct {
 	gf       *coderunner.GoFunction // 函数注册
@@ -141,46 +133,9 @@ func (p *PipeRunner) GetLastFile() string {
 	return p.LastFile
 }
 
-type RunnerOption func(*PipeRunner)
-
-// WithHooks user defined hooks
-func WithHooks(hooks *Hooks) RunnerOption {
-	return func(r *PipeRunner) {
-		r.hooks = hooks
-	}
-}
-
-// WithParent from hook
-func WithParent(parent *PipeRunner) RunnerOption {
-	return func(r *PipeRunner) {
-		r.Parent = parent
-	}
-}
-
-// WithUserFunction Function to register
-func WithUserFunction(funcs ...[]interface{}) RunnerOption {
-	return func(r *PipeRunner) {
-		r.registerFunctions(funcs...)
-	}
-}
-
-// WithAST Function to register
-func WithAST(ast *workflowast.Parser) RunnerOption {
-	return func(r *PipeRunner) {
-		r.ast = ast
-	}
-}
-
-// WithObject Function to register
-func WithObject(name string, obj interface{}) RunnerOption {
-	return func(r *PipeRunner) {
-		r.objects.Store(name, obj)
-	}
-}
-
 // 核心函数
 func (p *PipeRunner) fork(pipe string) error {
-	forkRunner := New(WithHooks(p.hooks), WithParent(p))
+	forkRunner := New().WithHooks(p.hooks).WithParent(p)
 	forkRunner.LastFile = p.LastFile // 从这里开始分叉
 	p.LastTask.Children = append(p.LastTask.Children, forkRunner)
 	code, err := workflowast.NewParser().Parse(pipe)
@@ -264,10 +219,11 @@ func (t *logHook) Fire(e *logrus.Entry) error {
 }
 
 // New create pipe runner
-func New(options ...RunnerOption) *PipeRunner {
+func New() *PipeRunner {
 	r := &PipeRunner{
 		logger: logrus.New(),
 		gf:     &coderunner.GoFunction{},
+		hooks:  defaultHooks,
 	}
 	r.logger.AddHook(&logHook{runner: r}) // fofa日志打到前端
 
@@ -307,9 +263,6 @@ func New(options ...RunnerOption) *PipeRunner {
 	logrus.Debug("ast support workflows:", translater.Translators)
 
 	r.gocodeRunner = coderunner.New(coderunner.WithFunctions(r.gf))
-	for _, opt := range options {
-		opt(r)
-	}
 
 	return r
 }

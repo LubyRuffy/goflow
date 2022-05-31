@@ -139,34 +139,33 @@ func run(w http.ResponseWriter, r *http.Request) {
 	tm := globalTaskMonitor.new(string(workflow))
 
 	go func() {
-		p := goflow.New(goflow.WithAST(ast),
-			goflow.WithHooks(&goflow.Hooks{
-				OnWorkflowStart: func(funcName string, callID int) {
-					tm.callIDRunning = callID
-					tm.addMsg(fmt.Sprintf("workflow start: %s, %s, %d", ast.CallList[callID-1].Name, funcName, callID))
-				},
-				OnWorkflowFinished: func(pt *goflow.PipeTask) {
-					tm.addMsg(fmt.Sprintf("workflow finished: %s, %s, %d", pt.WorkFlowName, pt.Name, pt.CallID))
-				},
-				OnLog: func(level logrus.Level, format string, args ...interface{}) {
-					tm.addMsg(fmt.Sprintf("[%s] %s", level.String(), fmt.Sprintf(format, args...)))
-				},
-				OnGetObject: func(name string) (interface{}, bool) {
-					v, ok := getObjectHook(name)
-					if ok {
-						return v, ok
+		p := goflow.New().WithAST(ast).WithHooks(&goflow.Hooks{
+			OnWorkflowStart: func(funcName string, callID int) {
+				tm.callIDRunning = callID
+				tm.addMsg(fmt.Sprintf("workflow start: %s, %s, %d", ast.CallList[callID-1].Name, funcName, callID))
+			},
+			OnWorkflowFinished: func(pt *goflow.PipeTask) {
+				tm.addMsg(fmt.Sprintf("workflow finished: %s, %s, %d", pt.WorkFlowName, pt.Name, pt.CallID))
+			},
+			OnLog: func(level logrus.Level, format string, args ...interface{}) {
+				tm.addMsg(fmt.Sprintf("[%s] %s", level.String(), fmt.Sprintf(format, args...)))
+			},
+			OnGetObject: func(name string) (interface{}, bool) {
+				v, ok := getObjectHook(name)
+				if ok {
+					return v, ok
+				}
+				switch name {
+				case gocodefuncs.FofaObjectName:
+					fofaCli, err := gofofa.NewClient()
+					if err != nil {
+						panic(fmt.Errorf("fofa connect err: %w", err))
 					}
-					switch name {
-					case gocodefuncs.FofaObjectName:
-						fofaCli, err := gofofa.NewClient()
-						if err != nil {
-							panic(fmt.Errorf("fofa connect err: %w", err))
-						}
-						return fofaCli, true
-					}
-					return nil, false
-				},
-			}))
+					return fofaCli, true
+				}
+				return nil, false
+			},
+		})
 		tm.runner = p
 		_, err = p.Run(code)
 		if err != nil {
