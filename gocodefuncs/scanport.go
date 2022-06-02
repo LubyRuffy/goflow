@@ -6,6 +6,7 @@ import (
 	"github.com/Ullaakut/nmap/v2"
 	"github.com/mitchellh/mapstructure"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,13 +32,33 @@ func ScanPort(p Runner, params map[string]interface{}) *FuncResult {
 		options.Ports = "22,80,443,1080,3389,8080,8443"
 	}
 
-	scanner, err := nmap.NewScanner(
+	opts := []nmap.Option{
 		nmap.WithTargets(options.Targets),
 		nmap.WithPorts(options.Ports),
 		nmap.WithOpenOnly(),
+	}
+	scanner, err := nmap.NewScanner(
+		opts...,
 	)
 	if err != nil {
-		panic(fmt.Errorf("ScanPort error: %w", err))
+		if err != nmap.ErrNmapNotInstalled {
+			panic(fmt.Errorf("ScanPort error: %w", err))
+		}
+
+		defaultNmapPath := utils.LoadFirstExistsFile([]string{
+			"nmap.exe",
+			filepath.Join(os.Getenv("PROGRAMFILES"), "Nmap", "nmap.exe"),
+			filepath.Join(os.Getenv("PROGRAMFILES(X86)"), "Nmap", "nmap.exe"),
+		})
+		if len(defaultNmapPath) != 0 {
+			opts = append(opts, nmap.WithBinaryPath(defaultNmapPath))
+			scanner, err = nmap.NewScanner(
+				opts...,
+			)
+		}
+		if err != nil {
+			panic(fmt.Errorf("ScanPort error: %w", err))
+		}
 	}
 
 	progress := make(chan float32, 1)
