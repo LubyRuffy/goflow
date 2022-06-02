@@ -39,7 +39,7 @@ func SetObjectHook(f func(name string) (interface{}, bool)) {
 }
 
 func defaultNewPipeRunner() *goflow.PipeRunner {
-	return goflow.New()
+	return goflow.New().WithDebug(logrus.DebugLevel)
 }
 
 // SetNewPipeRunner 创建Runner，上层可以自行注册自定义函数
