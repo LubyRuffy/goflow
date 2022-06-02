@@ -160,6 +160,9 @@ func TestFixURL(t *testing.T) {
 		{"1.1.1.1:443", "https://1.1.1.1"},
 		{"https://1.1.1.1:443", "https://1.1.1.1"},
 		{"https://1.1.1.1:8443", "https://1.1.1.1:8443"},
+		{"https://1.1.1.1:443/a?timeout=1", "https://1.1.1.1/a?timeout=1"},
+		{"https://1.1.1.1:443/a?timeout=1#1", "https://1.1.1.1/a?timeout=1"},
+		{"https://a:b@1.1.1.1:443/a?timeout=1#1", "https://1.1.1.1/a?timeout=1"},
 	}
 	for _, test := range cases {
 		assert.Equal(t, test[1], FixURL(test[0]))

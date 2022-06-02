@@ -295,6 +295,7 @@ func FixURL(v string) string {
 		if err != nil {
 			return v
 		}
+		//v = u.String() 不会过滤标准端口
 		v = u.Scheme + "://" + u.Hostname()
 		var defaultPort bool
 		switch u.Scheme {
@@ -309,6 +310,11 @@ func FixURL(v string) string {
 		}
 		if !defaultPort {
 			v += ":" + u.Port()
+		}
+
+		v += u.Path
+		if len(u.RawQuery) > 0 {
+			v += "?" + u.RawQuery
 		}
 	}
 	return v
