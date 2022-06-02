@@ -119,7 +119,7 @@ func ScreenShot(p Runner, params map[string]interface{}) *FuncResult {
 
 				var size int
 				var sfn string
-				sfn, size, err = screenshotURL(p, fixURL(u), &options)
+				sfn, size, err = screenshotURL(p, utils.FixURL(u), &options)
 				if err != nil {
 					p.Warnf("screenshotURL failed: %s", err)
 					f.WriteString(line + "\n")

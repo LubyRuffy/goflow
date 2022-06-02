@@ -7,6 +7,8 @@ import (
 	"github.com/tidwall/gjson"
 	"hash/fnv"
 	"io"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -274,4 +276,40 @@ func SimpleHash(text string) string {
 	algorithm := fnv.New32a()
 	algorithm.Write([]byte(text))
 	return fmt.Sprintf("0x%08x", algorithm.Sum32())
+}
+
+// FixURL 补充完整url，主要用于ip:port变成url
+func FixURL(v string) string {
+	if !strings.Contains(v, "://") {
+		host, port, _ := net.SplitHostPort(v)
+		switch port {
+		case "80":
+			v = "http://" + host
+		case "443":
+			v = "https://" + host
+		default:
+			v = "http://" + v
+		}
+	} else {
+		u, err := url.Parse(v)
+		if err != nil {
+			return v
+		}
+		v = u.Scheme + "://" + u.Hostname()
+		var defaultPort bool
+		switch u.Scheme {
+		case "http":
+			if u.Port() == "80" {
+				defaultPort = true
+			}
+		case "https":
+			if u.Port() == "443" {
+				defaultPort = true
+			}
+		}
+		if !defaultPort {
+			v += ":" + u.Port()
+		}
+	}
+	return v
 }

@@ -5,42 +5,8 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"net"
-	"net/url"
 	"os"
-	"strings"
 )
-
-func fixURL(v string) string {
-	if !strings.Contains(v, "://") {
-		host, port, _ := net.SplitHostPort(v)
-		if port == "80" {
-			v = host
-		}
-		v = "http://" + v
-	} else {
-		u, err := url.Parse(v)
-		if err != nil {
-			return v
-		}
-		v = u.Scheme + "://" + u.Hostname()
-		var defaultPort bool
-		switch u.Scheme {
-		case "http":
-			if u.Port() == "80" {
-				defaultPort = true
-			}
-		case "https":
-			if u.Port() == "443" {
-				defaultPort = true
-			}
-		}
-		if !defaultPort {
-			v += ":" + u.Port()
-		}
-	}
-	return v
-}
 
 // UrlFix 自动补齐url
 func UrlFix(p Runner, params map[string]interface{}) *FuncResult {
@@ -63,7 +29,7 @@ func UrlFix(p Runner, params map[string]interface{}) *FuncResult {
 				return err
 			}
 
-			line, err = sjson.Set(line, field, fixURL(v))
+			line, err = sjson.Set(line, field, utils.FixURL(v))
 			if err != nil {
 				return err
 			}
