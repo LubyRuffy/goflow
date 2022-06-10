@@ -57,7 +57,7 @@ func (p *PipeRunner) DumpTasks(server bool, prefix string) string {
 					{{ if HasPrefix .FileType "image/" }}
 						<img src="{{ safeURL .FilePath .FileType }}" height="80px">
 					{{ else if eq .FileType "chart_html"}}
-						show <iframe width="640" height="480" src="{{ safeURL .FilePath .FileType }}" frameBorder="0"></iframe>
+						show <iframe width="660" height="520" src="{{ safeURL .FilePath .FileType }}" frameBorder="0"></iframe>
 					{{ else }}
 						{{ .FilePath | toFileName }}
 					{{ end }}

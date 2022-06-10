@@ -12,6 +12,10 @@ import (
 	"path/filepath"
 )
 
+var (
+	ChartAssetsHost = "/public/assets/libs/echarts/" // ChartAssetsHost echarts资源加载的路径
+)
+
 type chartParams struct {
 	Type  string
 	Title string
@@ -53,7 +57,13 @@ func GenerateChart(p Runner, params map[string]interface{}) *FuncResult {
 		chart.SetGlobalOptions(
 			charts.WithTitleOpts(opts.Title{Title: options.Title, Left: "center"}),
 			charts.WithTooltipOpts(opts.Tooltip{Show: true}),
-			charts.WithInitializationOpts(opts.Initialization{AssetsHost: "/public/assets/libs/echarts/"}),
+			charts.WithInitializationOpts(opts.Initialization{
+				Width:      "640px",
+				Height:     "480px",
+				PageTitle:  options.Title,
+				AssetsHost: ChartAssetsHost,
+			}),
+			//charts.WithInitializationOpts(opts.Initialization{AssetsHost: ChartAssetsHost}),
 		)
 		chart.AddSeries("data", barItems)
 		chartRender = chart
@@ -62,7 +72,13 @@ func GenerateChart(p Runner, params map[string]interface{}) *FuncResult {
 		chart.SetGlobalOptions(
 			charts.WithTitleOpts(opts.Title{Title: options.Title, Left: "center"}),
 			charts.WithTooltipOpts(opts.Tooltip{Show: true}),
-			charts.WithInitializationOpts(opts.Initialization{AssetsHost: "/public/assets/libs/echarts/"}),
+			charts.WithInitializationOpts(opts.Initialization{
+				Width:      "640px",
+				Height:     "480px",
+				PageTitle:  options.Title,
+				AssetsHost: ChartAssetsHost,
+			}),
+			//charts.WithInitializationOpts(opts.Initialization{AssetsHost: ChartAssetsHost}),
 		)
 		chart.AddSeries("data", pieItems)
 		chartRender = chart
