@@ -12,7 +12,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 -   同一个文件的不同行格式（字段）允许不同；
 
 ## Features
--   内嵌底层函数
+- 内嵌底层函数
     -   FetchFile 从文件获取数据
         -   file
         -   format 格式，支持csv/json
@@ -31,18 +31,20 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
                 -   value 参数值
     -   RemoveField
         -   name 字段的名称
--   支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
--   （未完成）每一步都支持配置是否保留文件
--   （未完成）函数可以进行统一化的参数配置
--   框架支持内嵌golang注册函数的扩展
--   框架支持动态加载扩展，golang的脚本语言
--   支持simple模式，将pipeline的模式转换成完整的golang代码
--   输出到不同的目标
--   可以保持中间数据，如aggs结果；不参与主流程，只用于统计，方便后续生成报表
--   可以形成报表
--   完整的日志记录
--   支持可视化流程展示
--   （未完成）支持每一个步骤输出的格式预览
+- 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
+- （未完成）每一步都支持配置是否保留文件
+- （未完成）函数可以进行统一化的参数配置
+- 框架支持内嵌golang注册函数的扩展
+- 框架支持动态加载扩展，golang的脚本语言
+- 支持simple模式，将pipeline的模式转换成完整的golang代码
+- 输出到不同的目标
+- 可以保持中间数据，如aggs结果；不参与主流程，只用于统计，方便后续生成报表
+- 可以形成报表
+- 完整的日志记录
+- 支持可视化流程展示
+- （未完成）支持每一个步骤输出的格式预览
+- 支持WebHook配置，回调事件
+  - 支持finished事件
 
 ## simple模式
 

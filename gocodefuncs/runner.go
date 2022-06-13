@@ -23,6 +23,6 @@ type Artifact struct {
 
 // FuncResult 返回的结构
 type FuncResult struct {
-	OutFile   string // 往后传递的文件
-	Artifacts []*Artifact
+	OutFile   string      `json:"out_file,omitempty"`  // 往后传递的文件
+	Artifacts []*Artifact `json:"artifacts,omitempty"` // 中间文件
 }

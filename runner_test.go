@@ -7,6 +7,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/xuri/excelize/v2"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -635,4 +636,24 @@ func TestPipeRunner_if_add(t *testing.T) {
 	d, err = utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
 	assert.Contains(t, utils.JSONLineFields(string(d)), "host")
+}
+
+func TestPipeRunner_WithWebHook(t *testing.T) {
+	called := false
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		d, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		w.Write(d)
+		called = true
+	}))
+	defer ts.Close()
+	p := New().WithWebHook(ts.URL)
+	p.Run(`GenData(GetRunner(), map[string]interface{} {
+    "data": "{\"a\":\"json\"}",
+})`)
+	assert.True(t, called)
 }

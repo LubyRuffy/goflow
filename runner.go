@@ -1,8 +1,11 @@
 package goflow
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
+	"net/http"
 	"os"
 	"reflect"
 	"sync"
@@ -18,16 +21,16 @@ import (
 
 // PipeTask 每一个pipe执行的任务统计信息
 type PipeTask struct {
-	Name         string                  // pipe name
-	WorkFlowName string                  // workflow name
-	Content      string                  // raw content
-	Runner       *PipeRunner             // runner
-	CallID       int                     // 调用序列
-	Cost         time.Duration           // time costs
-	Result       *gocodefuncs.FuncResult // 结果
-	Children     []*PipeRunner           // fork children
-	Fields       []string                // fields list 列名
-	Error        error                   // 错误信息
+	Name         string                  `json:"name"`    // pipe name
+	WorkFlowName string                  `json:"-"`       // workflow name
+	Content      string                  `json:"-"`       // raw content
+	Runner       *PipeRunner             `json:"-"`       // runner
+	CallID       int                     `json:"call_id"` // 调用序列
+	Cost         time.Duration           `json:"cost"`    // time costs
+	Result       *gocodefuncs.FuncResult `json:"result"`  // 结果
+	Children     []*PipeRunner           `json:"-"`       // fork children
+	Fields       []string                `json:"fields"`  // fields list 列名
+	Error        error                   `json:"error"`   // 错误信息
 }
 
 // Close remove tmp outfile
@@ -41,19 +44,19 @@ func (p *PipeTask) Close() {
 
 // PipeRunner pipe运行器
 type PipeRunner struct {
-	gf       *coderunner.GoFunction // 函数注册
-	ast      *workflowast.Parser    // ast
-	content  string                 // 运行的内容
-	hooks    *Hooks                 // 消息通知
-	Tasks    []*PipeTask            // 执行的所有workflow
-	LastTask *PipeTask              // 最后执行的workflow
-	LastFile string                 // 最后生成的文件名
-	logger   *logrus.Logger
-	children []*PipeRunner
-	Parent   *PipeRunner
-
-	gocodeRunner *coderunner.Runner
-	objects      sync.Map // 全局注册的对象
+	gf           *coderunner.GoFunction // 函数注册
+	ast          *workflowast.Parser    // ast
+	content      string                 // 运行的内容
+	hooks        *Hooks                 // 消息通知
+	Tasks        []*PipeTask            // 执行的所有workflow
+	LastTask     *PipeTask              // 最后执行的workflow
+	LastFile     string                 // 最后生成的文件名
+	logger       *logrus.Logger
+	children     []*PipeRunner
+	Parent       *PipeRunner
+	gocodeRunner *coderunner.Runner // 底层的代码执行器
+	objects      sync.Map           // 全局注册的对象
+	WebHook      string             // webhook对应的地址
 }
 
 // GetObject 获取全局变量
@@ -74,14 +77,37 @@ func (p *PipeRunner) Debugf(format string, args ...interface{}) {
 	p.Logf(logrus.DebugLevel, format, args...)
 }
 
+// Warnf 打印警告日志
 func (p *PipeRunner) Warnf(format string, args ...interface{}) {
 	p.Logf(logrus.WarnLevel, format, args...)
 }
 
+// doWebHook
+func (p *PipeRunner) doWebHook(info map[string]interface{}) {
+	if p.WebHook != "" {
+		d, err := json.Marshal(info)
+		if err != nil {
+			p.logger.Errorf("doWebHook data failed: %v", err)
+		}
+		resp, err := http.Post(p.WebHook, "text/json", bytes.NewReader(d))
+		if err != nil {
+			p.logger.Errorf("doWebHook post failed: %v", err)
+		}
+		p.logger.Debugf("doWebHook response code: %d", resp.StatusCode)
+	}
+}
+
 // Run go code, not workflow
 func (p *PipeRunner) Run(code string) (reflect.Value, error) {
+	s := time.Now()
 	p.content = code
-	return p.gocodeRunner.Run(code)
+	v, err := p.gocodeRunner.Run(code)
+	p.doWebHook(map[string]interface{}{
+		"event": "finished",
+		"cost":  time.Since(s).String(),
+		"tasks": p.Tasks,
+	})
+	return v, err
 }
 
 // Close remove tmp outfile

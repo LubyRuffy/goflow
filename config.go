@@ -40,3 +40,9 @@ func (p *PipeRunner) WithDebug(level logrus.Level) *PipeRunner {
 	p.logger.Level = level
 	return p
 }
+
+// WithWebHook webhook setting
+func (p *PipeRunner) WithWebHook(hookURL string) *PipeRunner {
+	p.WebHook = hookURL
+	return p
+}
