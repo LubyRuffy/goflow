@@ -29,6 +29,8 @@ func GenFofaFieldData(p Runner, params map[string]interface{}) *FuncResult {
 				value = gofakeit.FirstName() + "." + gofakeit.DomainName()
 			case "domain":
 				value = gofakeit.DomainName()
+			case "title":
+				value = gofakeit.HackerPhrase()
 			case "ip":
 				value = gofakeit.IPv4Address()
 			case "port":
