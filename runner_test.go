@@ -2,11 +2,13 @@ package goflow
 
 import (
 	"bytes"
+	"compress/gzip"
 	"database/sql"
 	"github.com/LubyRuffy/goflow/gocodefuncs"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/xuri/excelize/v2"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -652,8 +654,62 @@ func TestPipeRunner_WithWebHook(t *testing.T) {
 	}))
 	defer ts.Close()
 	p := New().WithWebHook(ts.URL)
-	p.Run(`GenData(GetRunner(), map[string]interface{} {
-    "data": "{\"a\":\"json\"}",
+	p.Run(`GenFofaFieldData(GetRunner(), map[string]interface{} {
+	"query": "test",
+	"size": 1000,
+	"fields": "host,ip,port,title",
+})
+
+FlatArray(GetRunner(), map[string]interface{}{
+    "field": "port",
+})
+
+ZqQuery(GetRunner(), map[string]interface{}{
+    "query": "sort",
+})
+
+ZqQuery(GetRunner(), map[string]interface{}{
+    "query": "uniq -c",
+})
+
+ZqQuery(GetRunner(), map[string]interface{}{
+    "query": "sort count",
+})
+
+ZqQuery(GetRunner(), map[string]interface{}{
+    "query": "tail 10",
+})
+
+GenerateChart(GetRunner(), map[string]interface{}{
+    "type": "pie",
 })`)
 	assert.True(t, called)
+
+	gzipdata, err := p.GZipAll()
+	assert.Nil(t, err)
+	assert.True(t, len(gzipdata) > 0)
+
+	buf := bytes.NewBuffer(gzipdata)
+	zr, err := gzip.NewReader(buf)
+	assert.Nil(t, err)
+
+	filenum := 0
+	for {
+		zr.Multistream(false)
+		t.Log("Name: \n", zr.Name)
+		filenum++
+
+		_, err = io.ReadAll(zr)
+		assert.Nil(t, err)
+
+		err = zr.Reset(buf)
+		if err == io.EOF {
+			break
+		}
+		assert.Nil(t, err)
+	}
+
+	err = zr.Close()
+	assert.Nil(t, err)
+	assert.Equal(t, 7, filenum)
 }

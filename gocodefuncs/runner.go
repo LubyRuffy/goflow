@@ -14,11 +14,11 @@ type Runner interface {
 
 // Artifact 过程中生成的文件
 type Artifact struct {
-	FilePath string // 文件路径
-	FileName string // 文件路径
-	FileSize int    // 文件大小
-	FileType string // 文件类型
-	Memo     string // 备注，比如URL等
+	FilePath string `json:"file_path,omitempty"` // 文件路径
+	FileName string `json:"file_name,omitempty"` // 文件路径
+	FileSize int    `json:"file_size,omitempty"` // 文件大小
+	FileType string `json:"file_type,omitempty"` // 文件类型
+	Memo     string `json:"memo,omitempty"`      // 备注，比如URL等
 }
 
 // FuncResult 返回的结构

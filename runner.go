@@ -2,9 +2,11 @@ package goflow
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"reflect"
@@ -233,6 +235,43 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 			p.AddWorkflow(pt)
 		})
 	}
+}
+
+// GZipAll 打包所有文件
+func (p *PipeRunner) GZipAll() ([]byte, error) {
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+
+	var files []string
+	for _, t := range p.Tasks {
+		if len(t.Result.OutFile) > 0 {
+			files = append(files, t.Result.OutFile)
+		}
+		if len(t.Result.Artifacts) > 0 {
+			for _, f := range t.Result.Artifacts {
+				files = append(files, f.FilePath)
+			}
+		}
+	}
+
+	for _, file := range files {
+		zw.Name = file
+
+		data, err := ioutil.ReadFile(file)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := zw.Write(data); err != nil {
+			return nil, err
+		}
+
+		if err := zw.Close(); err != nil {
+			return nil, err
+		}
+
+		zw.Reset(&buf)
+	}
+	return buf.Bytes(), nil
 }
 
 // logHook is a hook designed for dealing with logs in test scenarios.
