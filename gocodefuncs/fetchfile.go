@@ -102,6 +102,7 @@ func FetchFile(p Runner, params map[string]interface{}) *FuncResult {
 		OutFile: jsonFn,
 		Artifacts: []*Artifact{
 			{
+				FileName: filepath.Base(rawFile),
 				FilePath: rawFile,
 				Memo:     "raw download file",
 			},

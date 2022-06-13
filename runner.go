@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 	"time"
@@ -255,7 +256,7 @@ func (p *PipeRunner) GZipAll() ([]byte, error) {
 	}
 
 	for _, file := range files {
-		zw.Name = file
+		zw.Name = filepath.Base(file)
 
 		data, err := ioutil.ReadFile(file)
 		if err != nil {

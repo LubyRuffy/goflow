@@ -654,7 +654,7 @@ func TestPipeRunner_WithWebHook(t *testing.T) {
 	}))
 	defer ts.Close()
 	p := New().WithWebHook(ts.URL)
-	p.Run(`GenFofaFieldData(GetRunner(), map[string]interface{} {
+	_, err := p.Run(`GenFofaFieldData(GetRunner(), map[string]interface{} {
 	"query": "test",
 	"size": 1000,
 	"fields": "host,ip,port,title",
@@ -684,6 +684,7 @@ GenerateChart(GetRunner(), map[string]interface{}{
     "type": "pie",
 })`)
 	assert.True(t, called)
+	assert.Nil(t, err)
 
 	gzipdata, err := p.GZipAll()
 	assert.Nil(t, err)
@@ -712,4 +713,49 @@ GenerateChart(GetRunner(), map[string]interface{}{
 	err = zr.Close()
 	assert.Nil(t, err)
 	assert.Equal(t, 7, filenum)
+}
+
+func TestPipeRunner_GZipAll(t *testing.T) {
+	p := New()
+	_, err := p.Run(`FetchFile(GetRunner(), map[string]interface{} {
+	"url": "https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv",
+})`)
+	assert.Nil(t, err)
+
+	gzipdata, err := p.GZipAll()
+	assert.Nil(t, err)
+	assert.True(t, len(gzipdata) > 0)
+
+	gzipFile, err := utils.WriteTempFile(".gz", func(f *os.File) error {
+		_, err = f.Write(gzipdata)
+		return err
+	})
+	assert.Nil(t, err)
+
+	gzipFileData, err := ioutil.ReadFile(gzipFile)
+	assert.Nil(t, err)
+
+	buf := bytes.NewBuffer(gzipFileData)
+	zr, err := gzip.NewReader(buf)
+	assert.Nil(t, err)
+
+	filenum := 0
+	for {
+		zr.Multistream(false)
+		t.Log("Name: \n", zr.Name)
+		filenum++
+
+		_, err = io.ReadAll(zr)
+		assert.Nil(t, err)
+
+		err = zr.Reset(buf)
+		if err == io.EOF {
+			break
+		}
+		assert.Nil(t, err)
+	}
+
+	err = zr.Close()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, filenum)
 }
