@@ -13,9 +13,9 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 
 ## Features
 -   内嵌底层函数
-    -   （未完成）FetchFile 从文件获取数据
+    -   FetchFile 从文件获取数据
         -   file
-        -   format 格式，支持csv/xml/json
+        -   format 格式，支持csv/json
     -   FetchFofa 从fofa获取数据
         -   query
         -   size

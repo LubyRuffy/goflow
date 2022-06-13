@@ -251,6 +251,7 @@ func New() *PipeRunner {
 	innerFuncs := [][]interface{}{
 		{"RemoveField", gocodefuncs.RemoveField},
 		{"FetchFofa", gocodefuncs.FetchFofa},
+		{"FetchFile", gocodefuncs.FetchFile},
 		{"GenFofaFieldData", gocodefuncs.GenFofaFieldData},
 		{"GenerateChart", gocodefuncs.GenerateChart},
 		{"ZqQuery", gocodefuncs.ZqQuery},

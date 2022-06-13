@@ -168,3 +168,7 @@ func TestFixURL(t *testing.T) {
 		assert.Equal(t, test[1], FixURL(test[0]))
 	}
 }
+
+func TestFunctionName(t *testing.T) {
+	assert.Equal(t, "TestFunctionName", FunctionName())
+}
