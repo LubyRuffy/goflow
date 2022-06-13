@@ -33,6 +33,9 @@ type PipeTask struct {
 // Close remove tmp outfile
 func (p *PipeTask) Close() {
 	os.Remove(p.Result.OutFile)
+	for _, f := range p.Result.Artifacts {
+		os.Remove(f.FilePath)
+	}
 	p.Children = nil
 }
 
