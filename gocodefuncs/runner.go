@@ -14,15 +14,15 @@ type Runner interface {
 
 // Artifact 过程中生成的文件
 type Artifact struct {
-	FilePath string `json:"file_path,omitempty"` // 文件路径
-	FileName string `json:"file_name,omitempty"` // 文件路径
-	FileSize int    `json:"file_size,omitempty"` // 文件大小
-	FileType string `json:"file_type,omitempty"` // 文件类型
-	Memo     string `json:"memo,omitempty"`      // 备注，比如URL等
+	FilePath string `json:"filePath,omitempty"` // 文件路径
+	FileName string `json:"fileName,omitempty"` // 文件路径
+	FileSize int    `json:"fileSize,omitempty"` // 文件大小
+	FileType string `json:"fileType,omitempty"` // 文件类型
+	Memo     string `json:"memo,omitempty"`     // 备注，比如URL等
 }
 
 // FuncResult 返回的结构
 type FuncResult struct {
-	OutFile   string      `json:"out_file,omitempty"`  // 往后传递的文件
+	OutFile   string      `json:"outFile,omitempty"`   // 往后传递的文件
 	Artifacts []*Artifact `json:"artifacts,omitempty"` // 中间文件
 }

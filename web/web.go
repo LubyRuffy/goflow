@@ -246,8 +246,10 @@ func view(w http.ResponseWriter, r *http.Request) {
 		"timeStamp":      ts,
 		"workflowStatus": workflowStatus,
 		"data": map[string]interface{}{
-			"logs": msgs,
-			"html": task.html,
+			"logs":     msgs,
+			"html":     task.html,
+			"finished": task.runner.Tasks,
+			"active":   task.actionIDRunning,
 		},
 	}
 
