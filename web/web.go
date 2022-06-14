@@ -150,12 +150,12 @@ func run(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		p := newPipeRunner().WithAST(ast).WithHooks(&goflow.Hooks{
-			OnWorkflowStart: func(funcName string, callID int) {
-				tm.callIDRunning = callID
-				tm.addMsg(fmt.Sprintf("workflow start: %s, %s, %d", ast.CallList[callID-1].Name, funcName, callID))
+			OnWorkflowStart: func(funcName string, actionId string) {
+				tm.actionIDRunning = actionId
+				tm.addMsg(fmt.Sprintf("workflow start: %s, %s", funcName, actionId))
 			},
 			OnWorkflowFinished: func(pt *goflow.PipeTask) {
-				tm.addMsg(fmt.Sprintf("workflow finished: %s, %s, %d", pt.WorkFlowName, pt.Name, pt.CallID))
+				tm.addMsg(fmt.Sprintf("workflow finished: %s, %s, %s", pt.WorkFlowName, pt.Name, pt.ActionID))
 			},
 			OnLog: func(level logrus.Level, format string, args ...interface{}) {
 				tm.addMsg(fmt.Sprintf("[%s] %s", level.String(), fmt.Sprintf(format, args...)))
@@ -227,8 +227,8 @@ func fetchMsg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if task.callIDRunning > 0 {
-		graphCode += fmt.Sprintf("\nstyle F%d fill:#57d3e3", task.callIDRunning)
+	if len(task.actionIDRunning) > 0 {
+		graphCode += fmt.Sprintf("\nstyle F%s fill:#57d3e3", task.actionIDRunning)
 	}
 
 	if task.runner != nil {
@@ -240,7 +240,7 @@ func fetchMsg(w http.ResponseWriter, r *http.Request) {
 			} else {
 				color = "#65d9ae"
 			}
-			graphCode += fmt.Sprintf("\nstyle F%d fill:%s", ti.CallID, color)
+			graphCode += fmt.Sprintf("\nstyle F%s fill:%s", ti.ActionID, color)
 
 		}
 	}

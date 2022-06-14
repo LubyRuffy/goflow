@@ -46,6 +46,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 - 支持WebHook配置，回调事件
   - 支持finished事件
 - 支持整体打包为gzip文件
+- 支持用户自定义actionId，通过params参数传递即可，用于跟踪workflow的执行进度
 
 ## simple模式
 

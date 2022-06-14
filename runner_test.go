@@ -554,7 +554,7 @@ func TestPipeRunner_Run(t *testing.T) {
 	assert.Equal(t, 5, len(ast.CallList))
 	assert.Equal(t, 5, len(p.Tasks))
 	for i := range ast.CallList {
-		assert.Equal(t, ast.CallList[i].UUID, p.Tasks[i].CallID)
+		assert.Equal(t, strconv.Itoa(ast.CallList[i].UUID), p.Tasks[i].ActionID)
 	}
 
 	p = New().WithUserFunction([]interface{}{
@@ -569,7 +569,7 @@ func TestPipeRunner_Run(t *testing.T) {
 	assert.Equal(t, 17, len(ast.CallList))
 	assert.Equal(t, 17, len(p.Tasks))
 	for i := range ast.CallList {
-		assert.Equal(t, ast.CallList[i].UUID, p.Tasks[i].CallID)
+		assert.Equal(t, strconv.Itoa(ast.CallList[i].UUID), p.Tasks[i].ActionID)
 	}
 }
 

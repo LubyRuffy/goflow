@@ -13,16 +13,16 @@ var (
 )
 
 type taskInfo struct {
-	monitor       *taskMonitor
-	runner        *goflow.PipeRunner
-	taskId        string
-	code          string // 运行的代码
-	msgCh         chan string
-	started       time.Time
-	ended         time.Time
-	html          string
-	callIDRunning int // 当前运行的callID
-	finished      bool
+	monitor         *taskMonitor
+	runner          *goflow.PipeRunner
+	taskId          string
+	code            string // 运行的代码
+	msgCh           chan string
+	started         time.Time
+	ended           time.Time
+	html            string
+	actionIDRunning string // 当前运行的actionID
+	finished        bool
 }
 
 func (t *taskInfo) finish() {

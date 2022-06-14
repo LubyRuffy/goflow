@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"sync"
 	"time"
 
@@ -24,16 +25,16 @@ import (
 
 // PipeTask 每一个pipe执行的任务统计信息
 type PipeTask struct {
-	Name         string                  `json:"name"`    // pipe name
-	WorkFlowName string                  `json:"-"`       // workflow name
-	Content      string                  `json:"-"`       // raw content
-	Runner       *PipeRunner             `json:"-"`       // runner
-	CallID       int                     `json:"call_id"` // 调用序列
-	Cost         time.Duration           `json:"cost"`    // time costs
-	Result       *gocodefuncs.FuncResult `json:"result"`  // 结果
-	Children     []*PipeRunner           `json:"-"`       // fork children
-	Fields       []string                `json:"fields"`  // fields list 列名
-	Error        error                   `json:"error"`   // 错误信息
+	Name         string                  `json:"name"`     // pipe name
+	WorkFlowName string                  `json:"-"`        // workflow name
+	Content      string                  `json:"-"`        // raw content
+	Runner       *PipeRunner             `json:"-"`        // runner
+	ActionID     string                  `json:"actionId"` // 调用序列
+	Cost         time.Duration           `json:"cost"`     // time costs
+	Result       *gocodefuncs.FuncResult `json:"result"`   // 结果
+	Children     []*PipeRunner           `json:"-"`        // fork children
+	Fields       []string                `json:"fields"`   // fields list 列名
+	Error        error                   `json:"error"`    // 错误信息
 }
 
 // Close remove tmp outfile
@@ -192,30 +193,38 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 		}
 
 		p.gf.Register(funcName, func(runner gocodefuncs.Runner, params map[string]interface{}) {
-			callID := 1
-			node := p
-			for {
-				callID = len(node.Tasks) + 1
-				if node.Parent == nil {
-					break
+			var actionId string
+			workflowName := ""
+			if v, ok := params["actionId"]; ok {
+				actionId = v.(string)
+			} else {
+				callID := 1
+				node := p
+				for {
+					callID = len(node.Tasks) + 1
+					if node.Parent == nil {
+						break
+					}
+					node = node.Parent
 				}
-				node = node.Parent
+				actionId = strconv.Itoa(callID)
+
+				if p.ast != nil {
+					workflowName = p.ast.CallList[callID-1].Name
+				}
 			}
+
 			logrus.Debug(funcName+" params:", params)
 			if p.hooks != nil {
-				p.hooks.OnWorkflowStart(funcName, callID)
+				p.hooks.OnWorkflowStart(funcName, actionId)
 			}
-			s := time.Now()
 
-			workflowName := ""
-			if p.ast != nil {
-				workflowName = p.ast.CallList[callID-1].Name
-			}
+			s := time.Now()
 			pt := &PipeTask{
 				Name:         funcName,
 				WorkFlowName: workflowName,
 				Content:      fmt.Sprintf("%v", params),
-				CallID:       callID,
+				ActionID:     actionId,
 				Runner:       p,
 			}
 
