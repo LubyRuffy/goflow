@@ -4,21 +4,18 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/LubyRuffy/goflow"
 	"github.com/LubyRuffy/goflow/gocodefuncs"
+	"github.com/LubyRuffy/goflow/workflowast"
 	"github.com/gorilla/mux"
 	"github.com/lubyruffy/gofofa"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"text/template"
-	"time"
-
-	"github.com/LubyRuffy/goflow"
-	"github.com/LubyRuffy/goflow/workflowast"
-	"github.com/sirupsen/logrus"
 )
 
 //go:embed public
@@ -160,8 +157,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 	tm := globalTaskMonitor.new(a.Astcode)
 
 	go func() {
-		p := newPipeRunner()
-		p.WithHooks(&goflow.Hooks{
+		p := newPipeRunner().WithHooks(&goflow.Hooks{
 			OnWorkflowStart: func(funcName string, actionId string) {
 				tm.actionIDRunning = actionId
 				tm.addMsg(fmt.Sprintf("workflow start: %s, %s", funcName, actionId))
@@ -208,66 +204,87 @@ func create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func fetchMsg(w http.ResponseWriter, r *http.Request) {
+func view(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	tid := r.FormValue("tid")
 
-	t, ok := globalTaskMonitor.m.Load(tid)
+	var a struct {
+		WorkflowId string `json:"workflowId"`
+		TimeStamp  string `json:"timeStamp"`
+	}
+
+	defer r.Body.Close()
+	err := json.NewDecoder(r.Body).Decode(&a)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"code": 500,
+			"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+		})
+		return
+	}
+
+	t, ok := globalTaskMonitor.m.Load(a.WorkflowId)
 	task := t.(*taskInfo)
 	if !ok {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":  true,
-			"result": fmt.Sprintf("no task found"),
-		})
-		return
-	}
-	var msgs []string
-	s := time.Now()
-	for {
-		log.Println(time.Since(s))
-		info, ok := task.receiveMsg()
-		if !ok {
-			break
-		}
-		msgs = append(msgs, info)
-	}
-
-	ast := workflowast.NewParser()
-	graphCode, err := genMermaidCode(ast, task.code)
-	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":  true,
-			"result": fmt.Sprintf("workflow parsed err: %v", err),
+			"code": 500,
+			"msg":  fmt.Sprintf("no task found"),
 		})
 		return
 	}
 
-	if len(task.actionIDRunning) > 0 {
-		graphCode += fmt.Sprintf("\nstyle F%s fill:#57d3e3", task.actionIDRunning)
+	workflowStatus := "1"
+	if task.finished {
+		workflowStatus = "2"
 	}
 
-	if task.runner != nil {
-		for i := range task.runner.Tasks {
-			ti := task.runner.Tasks[i]
-			color := ""
-			if ti.Error != nil {
-				color = "#fc8fa3"
-			} else {
-				color = "#65d9ae"
-			}
-			graphCode += fmt.Sprintf("\nstyle F%s fill:%s", ti.ActionID, color)
+	msgs, ts := task.receiveMsgs(a.TimeStamp)
 
-		}
-	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"error": false,
-		"result": map[string]interface{}{
-			"msgs":      msgs,
-			"html":      task.html,
-			"graphCode": graphCode,
+	returnObj := map[string]interface{}{
+		"code":           200,
+		"msg":            "success",
+		"workflowId":     a.WorkflowId,
+		"timeStamp":      ts,
+		"workflowStatus": workflowStatus,
+		"data": map[string]interface{}{
+			"logs": msgs,
+			"html": task.html,
 		},
-	})
+	}
+
+	if len(task.astCode) > 0 {
+		// ast 的运行模式
+		ast := workflowast.NewParser()
+		graphCode, err := genMermaidCode(ast, task.astCode)
+		if err != nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"code": 500,
+				"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+			})
+			return
+		}
+
+		if len(task.actionIDRunning) > 0 {
+			graphCode += fmt.Sprintf("\nstyle F%s fill:#57d3e3", task.actionIDRunning)
+		}
+
+		if task.runner != nil {
+			for i := range task.runner.Tasks {
+				ti := task.runner.Tasks[i]
+				color := ""
+				if ti.Error != nil {
+					color = "#fc8fa3"
+				} else {
+					color = "#65d9ae"
+				}
+				graphCode += fmt.Sprintf("\nstyle F%s fill:%s", ti.ActionID, color)
+
+			}
+		}
+
+		returnObj["data"].(map[string]interface{})["graphCode"] = graphCode
+	}
+
+	json.NewEncoder(w).Encode(returnObj)
 }
 
 // AppendToMuxRouter 附加到路由注册中
@@ -285,7 +302,7 @@ func AppendToMuxRouter(router *mux.Router) {
 	// 任务
 	router.HandleFunc(Prefix+"/parse", parse)
 	router.HandleFunc(Prefix+"/api/v1/workflow/create", create)
-	router.HandleFunc(Prefix+"/fetchMsg", fetchMsg)
+	router.HandleFunc(Prefix+"/api/v1/workflow/view", view)
 	router.HandleFunc(Prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
 		fn := filepath.Base(r.FormValue("url"))
 		f := filepath.Join(os.TempDir(), fn)

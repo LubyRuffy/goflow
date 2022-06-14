@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/LubyRuffy/goflow"
+	"strconv"
 	"sync"
 	"time"
 
@@ -12,23 +13,28 @@ var (
 	globalTaskMonitor = newTaskMonitor()
 )
 
+type msgItem struct {
+	ts  string
+	msg string
+}
+
 type taskInfo struct {
 	monitor         *taskMonitor
 	runner          *goflow.PipeRunner
 	taskId          string
-	code            string // 运行的代码
-	msgCh           chan string
+	astCode         string // 运行的代码
+	msgs            []msgItem
 	started         time.Time
 	ended           time.Time
 	html            string
 	actionIDRunning string // 当前运行的actionID
 	finished        bool
+	sync.Mutex
 }
 
 func (t *taskInfo) finish() {
 	t.ended = time.Time{}
 	t.finished = true
-	close(t.msgCh)
 
 	go func() {
 		select {
@@ -43,16 +49,35 @@ func (t *taskInfo) addMsg(msg string) {
 	if t.finished {
 		return
 	}
-	t.msgCh <- msg
+	t.Lock()
+	defer t.Unlock()
+	t.msgs = append(t.msgs, msgItem{
+		ts:  strconv.FormatInt(time.Now().Unix(), 10),
+		msg: msg,
+	})
 }
 
-func (t *taskInfo) receiveMsg() (string, bool) {
-	select {
-	case msg, ok := <-t.msgCh:
-		return msg, ok
-	default:
-		return "", false
+// 返回列表和最后时间戳
+func (t *taskInfo) receiveMsgs(ts string) ([]string, string) {
+	var msgs []string
+	found := false
+	if len(ts) == 0 {
+		found = true
 	}
+	lastTimeStamp := ""
+	for i := range t.msgs {
+		if t.msgs[i].ts != ts {
+			if found {
+				msgs = append(msgs, t.msgs[i].msg)
+				lastTimeStamp = t.msgs[i].ts
+			} else {
+				continue
+			}
+		} else {
+			found = true
+		}
+	}
+	return msgs, lastTimeStamp
 }
 
 type taskMonitor struct {
@@ -71,8 +96,7 @@ func (t *taskMonitor) new(code string) *taskInfo {
 	tid := uuid.New().String()
 	ti := &taskInfo{
 		taskId:  tid,
-		code:    code,
-		msgCh:   make(chan string, 1000),
+		astCode: code,
 		started: time.Now(),
 		monitor: t,
 	}
@@ -86,9 +110,9 @@ func (t *taskMonitor) addMsg(taskid string, msg string) {
 	}
 }
 
-func (t *taskMonitor) receiveMsg(taskid string) (string, bool) {
+func (t *taskMonitor) receiveMsgs(taskid string, ts string) ([]string, string) {
 	if task, ok := t.m.Load(taskid); ok {
-		return task.(*taskInfo).receiveMsg()
+		return task.(*taskInfo).receiveMsgs(ts)
 	}
-	return "", false
+	return nil, ""
 }
