@@ -40,7 +40,7 @@ func (p *PipeRunner) DumpTasks(server bool, prefix string) string {
 {{ define "task.tmpl" }}
 {{ range . }}
 <ul>
-	<li>{{ .WorkFlowName }} {{ .Name }} ({{ .Content }}) </li>
+	<li> {{ .Name }} ({{ .Content }}) </li>
 
 	{{ if .Result }}
 

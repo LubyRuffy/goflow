@@ -25,16 +25,15 @@ import (
 
 // PipeTask 每一个pipe执行的任务统计信息
 type PipeTask struct {
-	Name         string                  `json:"name"`     // pipe name
-	WorkFlowName string                  `json:"-"`        // workflow name
-	Content      string                  `json:"-"`        // raw content
-	Runner       *PipeRunner             `json:"-"`        // runner
-	ActionID     string                  `json:"actionId"` // 调用序列
-	Cost         time.Duration           `json:"cost"`     // time costs
-	Result       *gocodefuncs.FuncResult `json:"result"`   // 结果
-	Children     []*PipeRunner           `json:"-"`        // fork children
-	Fields       []string                `json:"fields"`   // fields list 列名
-	Error        error                   `json:"error"`    // 错误信息
+	Name     string                  `json:"name"`     // pipe name
+	Content  string                  `json:"-"`        // raw content
+	Runner   *PipeRunner             `json:"-"`        // runner
+	ActionID string                  `json:"actionId"` // 调用序列
+	Cost     time.Duration           `json:"cost"`     // time costs
+	Result   *gocodefuncs.FuncResult `json:"result"`   // 结果
+	Children []*PipeRunner           `json:"-"`        // fork children
+	Fields   []string                `json:"fields"`   // fields list 列名
+	Error    error                   `json:"error"`    // 错误信息
 }
 
 // Close remove tmp outfile
@@ -194,7 +193,6 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 
 		p.gf.Register(funcName, func(runner gocodefuncs.Runner, params map[string]interface{}) {
 			var actionId string
-			workflowName := ""
 			if v, ok := params["actionId"]; ok {
 				actionId = v.(string)
 			} else {
@@ -208,10 +206,6 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 					node = node.Parent
 				}
 				actionId = strconv.Itoa(callID)
-
-				if p.ast != nil {
-					workflowName = p.ast.CallList[callID-1].Name
-				}
 			}
 
 			logrus.Debug(funcName+" params:", params)
@@ -221,11 +215,10 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 
 			s := time.Now()
 			pt := &PipeTask{
-				Name:         funcName,
-				WorkFlowName: workflowName,
-				Content:      fmt.Sprintf("%v", params),
-				ActionID:     actionId,
-				Runner:       p,
+				Name:     funcName,
+				Content:  fmt.Sprintf("%v", params),
+				ActionID: actionId,
+				Runner:   p,
 			}
 
 			// 异常捕获

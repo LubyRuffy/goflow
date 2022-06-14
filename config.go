@@ -1,7 +1,6 @@
 package goflow
 
 import (
-	"github.com/LubyRuffy/goflow/workflowast"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,12 +19,6 @@ func (p *PipeRunner) WithParent(parent *PipeRunner) *PipeRunner {
 // WithUserFunction Function to register
 func (p *PipeRunner) WithUserFunction(funcs ...[]interface{}) *PipeRunner {
 	p.registerFunctions(funcs...)
-	return p
-}
-
-// WithAST Function to register
-func (p *PipeRunner) WithAST(ast *workflowast.Parser) *PipeRunner {
-	p.ast = ast
 	return p
 }
 

@@ -61,7 +61,7 @@ func genMermaidCode(ast *workflowast.Parser, code string) (s string, err error) 
 	finishWorkflow := []string{
 		"chart", "to_excel", "to_mysql", "to_sqlite",
 	}
-	return ast.ParseToGraph(string(code), func(name string, callId int, s string) string {
+	return ast.ParseToGraph(code, func(name string, callId int, s string) string {
 		for _, src := range sourceWorkflow {
 			if src == name {
 				return `F` + strconv.Itoa(callId) + `[("` + s + `")]`
@@ -123,39 +123,51 @@ func parse(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func run(w http.ResponseWriter, r *http.Request) {
+func create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	workflow, err := ioutil.ReadAll(r.Body)
+	var a struct {
+		Astcode string `json:"astcode"`
+		Code    string `json:"code"`
+	}
+
+	defer r.Body.Close()
+	err := json.NewDecoder(r.Body).Decode(&a)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":  true,
-			"result": fmt.Sprintf("workflow parsed err: %v", err),
+			"code": 500,
+			"msg":  fmt.Sprintf("workflow parsed err: %v", err),
 		})
 		return
 	}
 
+	var ast *workflowast.Parser
 	var code string
-	ast := workflowast.NewParser()
-	code, err = ast.Parse(string(workflow))
-	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":  true,
-			"result": fmt.Sprintf("workflow parsed err: %v", err),
-		})
-		return
+	if a.Code != "" {
+		code = a.Code
+	} else if a.Astcode != "" {
+		ast = workflowast.NewParser()
+		code, err = ast.Parse(a.Astcode)
+		if err != nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"code": 500,
+				"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+			})
+			return
+		}
 	}
 
-	tm := globalTaskMonitor.new(string(workflow))
+	tm := globalTaskMonitor.new(a.Astcode)
 
 	go func() {
-		p := newPipeRunner().WithAST(ast).WithHooks(&goflow.Hooks{
+		p := newPipeRunner()
+		p.WithHooks(&goflow.Hooks{
 			OnWorkflowStart: func(funcName string, actionId string) {
 				tm.actionIDRunning = actionId
 				tm.addMsg(fmt.Sprintf("workflow start: %s, %s", funcName, actionId))
 			},
 			OnWorkflowFinished: func(pt *goflow.PipeTask) {
-				tm.addMsg(fmt.Sprintf("workflow finished: %s, %s, %s", pt.WorkFlowName, pt.Name, pt.ActionID))
+				tm.addMsg(fmt.Sprintf("workflow finished: %s, %s", pt.Name, pt.ActionID))
 			},
 			OnLog: func(level logrus.Level, format string, args ...interface{}) {
 				tm.addMsg(fmt.Sprintf("[%s] %s", level.String(), fmt.Sprintf(format, args...)))
@@ -176,10 +188,11 @@ func run(w http.ResponseWriter, r *http.Request) {
 				return nil, false
 			},
 		})
+
 		tm.runner = p
 		_, err = p.Run(code)
 		if err != nil {
-			tm.addMsg("run err: " + err.Error())
+			tm.addMsg("create err: " + err.Error())
 		}
 
 		tm.html = p.DumpTasks(true, Prefix)
@@ -188,8 +201,10 @@ func run(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"error":  false,
-		"result": tm.taskId,
+		"code": false,
+		"data": map[string]interface{}{
+			"workflowId": tm.taskId,
+		},
 	})
 }
 
@@ -269,7 +284,7 @@ func AppendToMuxRouter(router *mux.Router) {
 
 	// 任务
 	router.HandleFunc(Prefix+"/parse", parse)
-	router.HandleFunc(Prefix+"/run", run)
+	router.HandleFunc(Prefix+"/api/v1/workflow/create", create)
 	router.HandleFunc(Prefix+"/fetchMsg", fetchMsg)
 	router.HandleFunc(Prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
 		fn := filepath.Base(r.FormValue("url"))

@@ -109,12 +109,15 @@
         document.getElementById("report").innerHTML = "";
         document.getElementById("message").innerHTML = "";
 
-        fetch('{{.}}/run', {
+        fetch('{{.}}/api/v1/workflow/create', {
             method: 'post',
-            body: document.getElementById("workflow").value.trim()
+            body: JSON.stringify({
+                "astcode": document.getElementById("workflow").value.trim()
+                // "code": document.getElementById("code").value.trim()
+            })
         }).then(response => response.json())
             .then(jsonData => {
-                taskId = jsonData.result;
+                taskId = jsonData.data.workflowId;
                 document.getElementById("message").innerHTML += "taskid: "+taskId + "<br/>";
                 readTask(taskId)
             })
