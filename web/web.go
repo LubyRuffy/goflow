@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"text/template"
+	"time"
 )
 
 //go:embed public
@@ -76,6 +77,11 @@ func genMermaidCode(ast *workflowast.Parser, code string) (s string, err error) 
 func parse(w http.ResponseWriter, r *http.Request) {
 	// fofa(`title=test`) & to_int(`port`) & sort(`port`) & [cut(`port`) | cut("ip")]
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	code, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -122,6 +128,11 @@ func parse(w http.ResponseWriter, r *http.Request) {
 
 func create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	var a struct {
 		Astcode string `json:"astcode"`
@@ -197,7 +208,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"code": false,
+		"code": 200,
 		"data": map[string]interface{}{
 			"workflowId": tm.taskId,
 		},
@@ -206,6 +217,11 @@ func create(w http.ResponseWriter, r *http.Request) {
 
 func view(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	var a struct {
 		WorkflowId string `json:"workflowId"`
@@ -223,7 +239,6 @@ func view(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, ok := globalTaskMonitor.m.Load(a.WorkflowId)
-	task := t.(*taskInfo)
 	if !ok {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"code": 500,
@@ -231,6 +246,7 @@ func view(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	task := t.(*taskInfo)
 
 	workflowStatus := "1"
 	if task.finished {
@@ -242,6 +258,7 @@ func view(w http.ResponseWriter, r *http.Request) {
 	returnObj := map[string]interface{}{
 		"code":           200,
 		"msg":            "success",
+		"cost":           time.Since(task.started).String(),
 		"workflowId":     a.WorkflowId,
 		"timeStamp":      ts,
 		"workflowStatus": workflowStatus,
