@@ -167,6 +167,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 
 	tm := globalTaskMonitor.new(a.Astcode)
 
+	hostinfo := "http://" + r.Host
 	go func() {
 		p := newPipeRunner().WithHooks(&goflow.Hooks{
 			OnWorkflowStart: func(funcName string, actionId string) {
@@ -202,7 +203,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 			tm.addMsg("create err: " + err.Error())
 		}
 
-		tm.html = p.DumpTasks(true, Prefix)
+		tm.html = p.DumpTasks(true, hostinfo+Prefix)
 		tm.addMsg("<finished>")
 		tm.finish()
 	}()
