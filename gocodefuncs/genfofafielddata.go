@@ -34,7 +34,7 @@ func GenFofaFieldData(p Runner, params map[string]interface{}) *FuncResult {
 			case "ip":
 				value = gofakeit.IPv4Address()
 			case "port":
-				value = gofakeit.IntRange(21, 65534)
+				value = gofakeit.IntRange(21, 8000)
 			case "country":
 				value = gofakeit.CountryAbr()
 			}

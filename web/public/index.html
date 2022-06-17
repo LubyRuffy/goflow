@@ -76,7 +76,9 @@
             })
         }).then(response => response.json())
             .then(jsonData => {
-                lastTimeStamp = jsonData.timeStamp;
+                if (jsonData.timeStamp.length>0) {
+                    lastTimeStamp = jsonData.timeStamp;
+                }
 
                 if (jsonData.data.logs != null) {
                     for (const msg of jsonData.data.logs) {

@@ -172,3 +172,17 @@ func TestFixURL(t *testing.T) {
 func TestFunctionName(t *testing.T) {
 	assert.Equal(t, "TestFunctionName", FunctionName())
 }
+
+func TestTopMapByValue(t *testing.T) {
+	m := map[string]int64{
+		"a": 2,
+		"b": 3,
+		"c": 1,
+	}
+	assert.Equal(t, 3, len(TopMapByValue(m, 100)))
+	assert.Equal(t, "b", TopMapByValue(m, 100)[0].Name)
+	assert.Equal(t, "c", TopMapByValue(m, 100)[2].Name)
+	assert.Equal(t, 1, len(TopMapByValue(m, 1)))
+	assert.Equal(t, 3, len(TopMapByValue(m, -1)))
+	assert.Equal(t, 3, len(TopMapByValue(m, 0)))
+}

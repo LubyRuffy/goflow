@@ -325,6 +325,8 @@ func New() *PipeRunner {
 		{"FetchFile", gocodefuncs.FetchFile},
 		{"GenFofaFieldData", gocodefuncs.GenFofaFieldData},
 		{"GenerateChart", gocodefuncs.GenerateChart},
+		{"PieChart", gocodefuncs.PieChart},
+		{"BarChart", gocodefuncs.BarChart},
 		{"ZqQuery", gocodefuncs.ZqQuery},
 		{"AddField", gocodefuncs.AddField},
 		{"LoadFile", gocodefuncs.LoadFile},

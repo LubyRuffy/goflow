@@ -13,14 +13,14 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 
 ## Features
 - 内嵌底层函数
-    -   FetchFile 从文件获取数据
+    - FetchFile 从文件获取数据
         -   file
         -   format 格式，支持csv/json
-    -   FetchFofa 从fofa获取数据
+    - FetchFofa 从fofa获取数据
         -   query
         -   size
         -   fields
-    -   AddField 添加字段
+    - AddField 添加字段
         -   name 字段的名称
         -   设置数据，下面二选一
             -   value 直接赋值
@@ -29,8 +29,13 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
                     -   grep 正则处理，包括子串的提取
                 -   field 字段
                 -   value 参数值
-    -   RemoveField
-        -   name 字段的名称
+    - RemoveField 删除字段
+        - name 字段的名称
+    - PieChart 生成Pie类型的报表
+      - name 字段的名称
+      - value 值的名称，如果是```count()```表明去重统计
+      - size 取多少条，倒叙排序
+      - title 报表标题
 - 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 - （未完成）每一步都支持配置是否保留文件
 - （未完成）函数可以进行统一化的参数配置
@@ -51,8 +56,8 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 ## simple模式
 
 按照如下规范进行设置：
--   用管道符号进行分隔：```cmd() & cmd2() & cmd3()```
--   参数支持多种格式：
+- 用管道符号进行分隔：```cmd() & cmd2() & cmd3()```
+- 参数支持多种格式：
     -   字符串
         -   双引号
         -   符号“`”
@@ -61,37 +66,41 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     -   INT
     -   bool：true/false
     -   null
--   支持嵌套：```cmd(cmd1())```
--   数据源命令：
+- 支持嵌套：```cmd(cmd1())```
+- 数据源命令：
     -   fofa(query, size, fields) 从fofa获取数据
     -   load(file) 从文件加载数据
     -   gen(jsonstring) 生成一行json，调试用
     -   scan_port(hosts,ports) 扫描端口（调用nmap）
--   目标地址命令：
+- 目标地址命令：
     -   to_mysql(table,dsn,fields) 入库mysql，table必须填写；dns可选；如果没有那么就只生成sql文件；fields可选，如果没有，那么就从数据库中进行获取，没有配置dsn的话按照全字段
     -   to_sqlite(table,dsn,fields) 入库sqlite，table必须填写；dns可选；如果没有那么就只生成sql文件；fields可选，如果没有，那么就从数据库中进行获取，没有配置dsn的话按照全字段
     -   to_excel()
--   数据操作命令：
-    -   cut(fields) 只保留特定字段
-    -   drop(fields) 删除字段，rm也可以
-    -   grep_add(from_field, pattern, new_field_name) 通过对已有字段的正则提取到新的字段
-    -   to_int(field) 格式转换为int：```./fofa --verbose pipeline 'fofa(`title="test"`, `ip,port`) & to_int(`port`)'```
-    -   sort(field) 排序：```./fofa --verbose pipeline 'fofa(`title="test"`, `ip,port`) & to_int(`port`) & sort(`port`)'```
-    -   （未完成）set(field_name, value)
-    -   value(field) 取出值
-    -   flat(field) 把数组打平，去掉空值
-    -   stats(field, top_size) 统计计数：```./fofa --verbose pipeline 'fofa(`title="hacked"`,`title`, 1000) & stats("title",10)'```
-    -   uniq(true) 相邻的去重，注意：不会先排序
-    -   zq(query) 调用原始的zq语句
-    -   chart(type, title) 生成图表，支持pie/bar
-    -   fork(pipelines) 原始的手动创建分支的方式
-    -   screenshot(url) 网页截图
-    -   render_dom(url) 渲染dom生成html入到数据中
-    -   concat_add(field+":"+field2, newfield) 拼凑字符串，生成新的字段
-    -   fix_url(host) 解决host到url的转换
--   通过 ```[ cmd1() | cmd2() ]``` 创建分支
+- 数据操作命令：
+    - cut(fields) 只保留特定字段
+    - drop(fields) 删除字段，rm也可以
+    - grep_add(from_field, pattern, new_field_name) 通过对已有字段的正则提取到新的字段
+    - to_int(field) 格式转换为int：```./fofa --verbose pipeline 'fofa(`title="test"`, `ip,port`) & to_int(`port`)'```
+    - sort(field) 排序：```./fofa --verbose pipeline 'fofa(`title="test"`, `ip,port`) & to_int(`port`) & sort(`port`)'```
+    - （未完成）set(field_name, value)
+    - value(field) 取出值
+    - flat(field) 把数组打平，去掉空值
+    - stats(field, top_size) 统计计数：```./fofa --verbose pipeline 'fofa(`title="hacked"`,`title`, 1000) & stats("title",10)'```
+    - uniq(true) 相邻的去重，注意：不会先排序
+    - zq(query) 调用原始的zq语句
+    - chart(type, title) 生成图表，支持pie/bar
+    - fork(pipelines) 原始的手动创建分支的方式
+    - screenshot(url) 网页截图
+    - render_dom(url) 渲染dom生成html入到数据中
+    - concat_add(field+":"+field2, newfield) 拼凑字符串，生成新的字段
+    - fix_url(host) 解决host到url的转换
+- 报表命令：
+  - chart(type) type为pie,bar这样的；这里面要求必须是进行stats处理过后的统计结果
+  - pie(field, value, top, title) value可以是```count()```表明按照数据字段打平了进行聚类统计，否则说明field每一个值都不一样，value是由另一个field字段进行定义的
+  - bar(field, value, top, title) value可以是```count()```表明按照数据字段打平了进行聚类统计，否则说明field每一个值都不一样，value是由另一个field字段进行定义的
+- 通过 ```[ cmd1() | cmd2() ]``` 创建分支
     -   分支的数据留是分开的，比如```fofa(`port=80`,`ip,port`) & [ cut(`ip`) | cut(`port`) ]```将会生成两条数据流
--   能够追踪执行进度
+- 能够追踪执行进度
     -   日志
     -   单个进度
     -   记录错误

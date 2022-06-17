@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 )
@@ -331,4 +332,35 @@ func FunctionName() string {
 		fn = fs[1]
 	}
 	return fn
+}
+
+// MapPair map[string]int64排序后的元素对
+type MapPair struct {
+	Name  string
+	Value int64
+}
+type PairList []MapPair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// TopMapByValue 根据map[string]int64的值进行排序，取topSize的条数出来
+func TopMapByValue(m map[string]int64, topSize int) PairList {
+	mSize := len(m)
+	if topSize < 1 {
+		topSize = mSize
+	} else {
+		if topSize > mSize {
+			topSize = mSize
+		}
+	}
+	pl := make(PairList, len(m))
+	i := 0
+	for k, v := range m {
+		pl[i] = MapPair{k, v}
+		i++
+	}
+	sort.Sort(sort.Reverse(pl))
+	return pl[0:topSize]
 }
