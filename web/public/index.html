@@ -76,8 +76,8 @@
             })
         }).then(response => response.json())
             .then(jsonData => {
-                if (jsonData.timeStamp.length>0) {
-                    lastTimeStamp = jsonData.timeStamp;
+                if (jsonData.data.timeStamp.length>0) {
+                    lastTimeStamp = jsonData.data.timeStamp;
                 }
 
                 if (jsonData.data.logs != null) {
@@ -99,7 +99,7 @@
                     // hljs.highlightAll();
                 }
 
-                if (jsonData.workflowStatus === "1") {
+                if (jsonData.data.workflowStatus === "1") {
                     setTimeout(() => {
                         readTask(taskId)
                         }, 1000);

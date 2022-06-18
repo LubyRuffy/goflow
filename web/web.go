@@ -143,8 +143,8 @@ func create(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&a)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"code": 500,
-			"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+			"code":    500,
+			"message": fmt.Sprintf("workflow parsed err: %v", err),
 		})
 		return
 	}
@@ -158,8 +158,8 @@ func create(w http.ResponseWriter, r *http.Request) {
 		code, err = ast.Parse(a.Astcode)
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"code": 500,
-				"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+				"code":    500,
+				"message": fmt.Sprintf("workflow parsed err: %v", err),
 			})
 			return
 		}
@@ -233,8 +233,8 @@ func view(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&a)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"code": 500,
-			"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+			"code":    500,
+			"message": fmt.Sprintf("workflow parsed err: %v", err),
 		})
 		return
 	}
@@ -242,8 +242,8 @@ func view(w http.ResponseWriter, r *http.Request) {
 	t, ok := globalTaskMonitor.m.Load(a.WorkflowId)
 	if !ok {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"code": 500,
-			"msg":  fmt.Sprintf("no task found"),
+			"code":    500,
+			"message": fmt.Sprintf("no task found"),
 		})
 		return
 	}
@@ -257,17 +257,17 @@ func view(w http.ResponseWriter, r *http.Request) {
 	msgs, ts := task.receiveMsgs(a.TimeStamp)
 
 	returnObj := map[string]interface{}{
-		"code":           200,
-		"msg":            "success",
-		"cost":           time.Since(task.started).String(),
-		"workflowId":     a.WorkflowId,
-		"timeStamp":      ts,
-		"workflowStatus": workflowStatus,
+		"code":    200,
+		"message": "success",
 		"data": map[string]interface{}{
-			"logs":     msgs,
-			"html":     task.html,
-			"finished": task.runner.Tasks,
-			"active":   task.actionIDRunning,
+			"cost":           time.Since(task.started).String(),
+			"workflowId":     a.WorkflowId,
+			"timeStamp":      ts,
+			"workflowStatus": workflowStatus,
+			"logs":           msgs,
+			"html":           task.html,
+			"finished":       task.runner.Tasks,
+			"active":         task.actionIDRunning,
 		},
 	}
 
@@ -277,8 +277,8 @@ func view(w http.ResponseWriter, r *http.Request) {
 		graphCode, err := genMermaidCode(ast, task.astCode)
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"code": 500,
-				"msg":  fmt.Sprintf("workflow parsed err: %v", err),
+				"code":    500,
+				"message": fmt.Sprintf("workflow parsed err: %v", err),
 			})
 			return
 		}
