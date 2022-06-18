@@ -5,6 +5,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/brimdata/zed/cli/zq"
 	"github.com/mitchellh/mapstructure"
+	"github.com/tidwall/gjson"
 	"io"
 	"net/http"
 	"net/url"
@@ -80,13 +81,15 @@ func FetchFile(p Runner, params map[string]interface{}) *FuncResult {
 		options.Format = filepath.Ext(u.Path)
 	}
 
-	jsonFn, err := utils.WriteTempFile(".json", nil)
-	if err != nil {
-		panic(fmt.Errorf("FetchFile failed: %w", err))
-	}
+	var jsonFn string
 
 	switch options.Format {
 	case "csv", ".csv":
+		jsonFn, err = utils.WriteTempFile(".json", nil)
+		if err != nil {
+			panic(fmt.Errorf("FetchFile failed: %w", err))
+		}
+
 		cmd := []string{"-f", "json", "-o", jsonFn, rawFile}
 		err = zq.Cmd.ExecRoot(cmd)
 		if err != nil {
@@ -94,6 +97,32 @@ func FetchFile(p Runner, params map[string]interface{}) *FuncResult {
 		}
 	case "json", ".json":
 		jsonFn = rawFile
+		var d []byte
+		d, err = utils.ReadFirstLineOfFile(rawFile)
+		if err != nil {
+			panic(fmt.Errorf("FetchFile failed: %w", err))
+		}
+
+		// 第一行格式不对，说明是大的json数组
+		if !gjson.ValidBytes(d) {
+			d, _ = os.ReadFile(rawFile)
+			result := gjson.ParseBytes(d)
+
+			jsonFn, err = utils.WriteTempFile(".json", func(f *os.File) error {
+				for _, a := range result.Array() {
+					_, err = f.WriteString(a.Get("@ugly").String() + "\n")
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+
+			if err != nil {
+				panic(fmt.Errorf("FetchFile failed: %w", err))
+			}
+		}
+
 	default:
 		panic(fmt.Errorf("unknown format of:%s", options.Format))
 	}
@@ -109,3 +138,7 @@ func FetchFile(p Runner, params map[string]interface{}) *FuncResult {
 		},
 	}
 }
+
+/*
+- json有两种格式，需要进行归一化：一种是每行一条；一种是数组形式
+*/
