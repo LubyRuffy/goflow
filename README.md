@@ -97,6 +97,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     - fix_url(host) 解决host到url的转换
     - http_get(urlField) 请求url，生成http_status,http_header,http_body字段
     - where(filter) 选择过滤器
+    - parse_url(urlField) 解析url为一个结构体
 - 报表命令：
   - chart(type) type为pie,bar这样的；这里面要求必须是进行stats处理过后的统计结果
   - pie(field, value, top, title) value可以是```count()```表明按照数据字段打平了进行聚类统计，否则说明field每一个值都不一样，value是由另一个field字段进行定义的
