@@ -6,24 +6,10 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"hash/fnv"
-	"io"
-	"net"
-	"net/url"
-	"os"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"time"
-)
-
-var (
-	defaultPipeTmpFilePrefix   = "goflow_pipeline_"
-	lastCheckDockerTime        time.Time // 最后检查docker路径的时间
-	defaultDockerPath          = "docker"
-	defaultCheckDockerDuration = 5 * time.Minute
-	globalDockerOK             = false
 )
 
 func read(r *bufio.Reader) ([]byte, error) {
@@ -41,58 +27,6 @@ func read(r *bufio.Reader) ([]byte, error) {
 	return ln, err
 }
 
-// EachLine 每行处理文件
-func EachLine(filename string, f func(line string) error) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
-	for {
-		line, err := read(reader)
-		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				return err
-			}
-		}
-
-		err = f(string(line))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// WriteTempFile 写入临时文件
-// 如果writeF是nil，就只返回生成的一个临时空文件路径
-// 返回文件名和错误
-func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err error) {
-	var f *os.File
-	if len(ext) > 0 {
-		ext = "*" + ext
-	}
-	f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+ext)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-
-	fn = f.Name()
-
-	if writeF != nil {
-		err = writeF(f)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
 // EscapeString 双引号内的字符串转换
 func EscapeString(s string) string {
 	//s, _ = sjson.Set(`{"a":""}`, "a", s)
@@ -106,32 +40,6 @@ func EscapeString(s string) string {
 func EscapeDoubleQuoteStringOfHTML(s string) string {
 	s = strings.ReplaceAll(s, `"`, `#quot;`)
 	return s
-}
-
-// ReadFirstLineOfFile 读取文件的第一行
-func ReadFirstLineOfFile(fn string) ([]byte, error) {
-	f, err := os.Open(fn)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	var b [1]byte
-	var data []byte
-	for {
-		_, err = f.Read(b[:])
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return data, err
-		}
-		if b[0] == '\n' {
-			break
-		}
-		data = append(data, b[0])
-	}
-	return data, nil
 }
 
 // JSONLineFieldsWithType 获取json行的fields，包含属性信息
@@ -158,29 +66,6 @@ func JSONLineFields(line string) (fields []string) {
 		fields = append(fields, f[0])
 	}
 	return
-}
-
-// FileExists checks if a file exists and is not a directory before we
-// try using it to prevent further errors.
-func FileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	if err != nil {
-		return false
-	}
-	return !info.IsDir()
-}
-
-// LoadFirstExistsFile 从文件列表中返回第一个存在的文件路径
-func LoadFirstExistsFile(paths []string) string {
-	for _, p := range paths {
-		if FileExists(p) {
-			return p
-		}
-	}
-	return ""
 }
 
 //// GetCurrentProcessFileDir 获得当前程序所在的目录
@@ -221,117 +106,11 @@ func RunCmdNoExitError(d []byte, err error) ([]byte, error) {
 	return d, err
 }
 
-// DockerRun 运行docker，解决Windows找不到的问题
-// 注意：exec.ExitError 错误会被忽略，我们只关心所有的字符串返回，不关注进程的错误代码
-func DockerRun(args ...string) ([]byte, error) {
-	// 缓存5分钟
-	if time.Now().Sub(lastCheckDockerTime) < defaultCheckDockerDuration {
-		if globalDockerOK {
-			return RunCmdNoExitError(exec.Command(defaultDockerPath, args...).CombinedOutput())
-		} else {
-			return nil, fmt.Errorf("docker status is not ok")
-		}
-	}
-	lastCheckDockerTime = time.Now()
-
-	d, err := RunCmdNoExitError(exec.Command(defaultDockerPath, "version").CombinedOutput())
-	if err != nil {
-		if _, ok := err.(*exec.ExitError); ok {
-			err = nil
-		} else {
-			// 可能路径不在PATH环境变量，需要自己找，主要是windows
-			// https://docs.microsoft.com/en-us/windows/deployment/usmt/usmt-recognized-environment-variables
-			defaultDockerPath = LoadFirstExistsFile([]string{
-				"docker.exe",
-				filepath.Join(os.Getenv("PROGRAMFILES"), "Docker", "Docker", "resources", "bin", "docker.exe"),
-				filepath.Join(os.Getenv("PROGRAMFILES(X86)"), "Docker", "Docker", "resources", "bin", "docker.exe"),
-			})
-			if len(defaultDockerPath) == 0 {
-				return nil, fmt.Errorf("could not find docker")
-			}
-			d, err = RunCmdNoExitError(exec.Command(defaultDockerPath, "version").CombinedOutput())
-		}
-	}
-	if err == nil {
-		if strings.Contains(string(d), "API version") {
-			globalDockerOK = true
-			return RunCmdNoExitError(exec.Command(defaultDockerPath, args...).CombinedOutput())
-		} else {
-			err = fmt.Errorf("docker is invalid")
-		}
-	}
-
-	return nil, err
-}
-
-// DockerStatusOk 检查是否安装
-func DockerStatusOk() bool {
-	data, err := DockerRun("images")
-	if err != nil {
-		return false
-	}
-	return strings.Contains(string(data), "REPOSITORY")
-}
-
 // SimpleHash hashes using fnv32a algorithm
 func SimpleHash(text string) string {
 	algorithm := fnv.New32a()
 	algorithm.Write([]byte(text))
 	return fmt.Sprintf("0x%08x", algorithm.Sum32())
-}
-
-// FixURL 补充完整url，主要用于ip:port变成url
-func FixURL(v string) string {
-	if !strings.Contains(v, "://") {
-		host, port, _ := net.SplitHostPort(v)
-		switch port {
-		case "80":
-			v = "http://" + host
-		case "443":
-			v = "https://" + host
-		default:
-			v = "http://" + v
-		}
-	} else {
-		u, err := url.Parse(v)
-		if err != nil {
-			return v
-		}
-		//v = u.String() 不会过滤标准端口
-		v = u.Scheme + "://" + u.Hostname()
-		var defaultPort bool
-		switch u.Scheme {
-		case "http":
-			if u.Port() == "80" {
-				defaultPort = true
-			}
-		case "https":
-			if u.Port() == "443" {
-				defaultPort = true
-			}
-		}
-		if !defaultPort {
-			v += ":" + u.Port()
-		}
-
-		v += u.Path
-		if len(u.RawQuery) > 0 {
-			v += "?" + u.RawQuery
-		}
-	}
-	return v
-}
-
-// FunctionName 当前调用的函数名称
-func FunctionName() string {
-	pc, _, _, _ := runtime.Caller(1)
-	fn := runtime.FuncForPC(pc).Name()
-	// 完整的路径是这样的：github.com/LubyRuffy/goflow/utils.TestFunctionName
-	fn = fn[strings.LastIndex(fn, "/")+1:] //去掉前面所有的部分
-	if fs := strings.Split(fn, "."); len(fs) > 1 {
-		fn = fs[1]
-	}
-	return fn
 }
 
 // MapPair map[string]int64排序后的元素对

@@ -36,6 +36,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
       - value 值的名称，如果是```count()```表明去重统计
       - size 取多少条，倒叙排序
       - title 报表标题
+    - HttpRequest 执行http请求
 - 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 - （未完成）每一步都支持配置是否保留文件
 - （未完成）函数可以进行统一化的参数配置
@@ -94,6 +95,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     - render_dom(url) 渲染dom生成html入到数据中
     - concat_add(field+":"+field2, newfield) 拼凑字符串，生成新的字段
     - fix_url(host) 解决host到url的转换
+    - http_get() 请求url，生成http_status,http_header,http_body字段
 - 报表命令：
   - chart(type) type为pie,bar这样的；这里面要求必须是进行stats处理过后的统计结果
   - pie(field, value, top, title) value可以是```count()```表明按照数据字段打平了进行聚类统计，否则说明field每一个值都不一样，value是由另一个field字段进行定义的

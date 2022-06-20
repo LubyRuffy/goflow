@@ -15,6 +15,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	defaultUserAgent = "goflow/1.0"
+)
+
 type screenshotParam struct {
 	URLField  string `json:"urlField"`  // url的字段名称，默认是url
 	Timeout   int    `json:"timeout"`   // 整个浏览器操作超时
@@ -40,6 +44,7 @@ func chromeActions(u string, logf func(string, ...interface{}), timeout int, act
 		chromedp.NoDefaultBrowserCheck,
 		chromedp.NoSandbox,
 		chromedp.DisableGPU,
+		chromedp.UserAgent(defaultUserAgent), // chromedp.Flag("user-agent", defaultUserAgent)
 		chromedp.WindowSize(1024, 768),
 	)
 
@@ -119,9 +124,10 @@ func ScreenShot(p Runner, params map[string]interface{}) *FuncResult {
 
 				var size int
 				var sfn string
-				sfn, size, err = screenshotURL(p, utils.FixURL(u), &options)
+				url := utils.FixURL(u)
+				sfn, size, err = screenshotURL(p, url, &options)
 				if err != nil {
-					p.Warnf("screenshotURL failed: %s", err)
+					p.Warnf("screenshotURL failed: %s, %s", url, err)
 					f.WriteString(line + "\n")
 					return
 				}
