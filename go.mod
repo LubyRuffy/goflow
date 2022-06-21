@@ -62,6 +62,7 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twmb/murmur3 v1.1.6 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
+	github.com/weppos/publicsuffix-go v0.15.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/xuri/efp v0.0.0-20220407160117-ad0f7a785be8 // indirect
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect

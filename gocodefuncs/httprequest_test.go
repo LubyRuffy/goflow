@@ -16,14 +16,16 @@ func TestHttpRequest(t *testing.T) {
 	defer ts.Close()
 
 	data := `{"url":"` + ts.URL + `"}`
-	fr := HttpRequest(newTestRunner(data), map[string]interface{}{})
+	fr := HttpRequest(newTestRunner(data), map[string]interface{}{
+		"keepBody": true,
+	})
 	assert.NotEqual(t, "", fr.OutFile)
 	assert.Equal(t, 0, len(fr.Artifacts))
 	d, err := utils.ReadFirstLineOfFile(fr.OutFile)
 	assert.Nil(t, err)
-	assert.Equal(t, "hello world", gjson.GetBytes(d, "http_body").String())
-	assert.Equal(t, int64(200), gjson.GetBytes(d, "http_status").Int())
-	assert.Contains(t, gjson.GetBytes(d, "http_header").String(), "Content-Type: text/plain; charset=utf-8\n")
+	assert.Equal(t, "hello world", gjson.GetBytes(d, "url_requested.http_body").String())
+	assert.Equal(t, int64(200), gjson.GetBytes(d, "url_requested.http_status").Int())
+	assert.Contains(t, gjson.GetBytes(d, "url_requested.http_header").String(), "Content-Type: text/plain; charset=utf-8\n")
 
 	//t.Log(string(d))
 }

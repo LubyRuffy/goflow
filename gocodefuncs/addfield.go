@@ -46,7 +46,7 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	var newLines []string
-	utils.EachLine(p.GetLastFile(), func(line string) error {
+	err = utils.EachLine(p.GetLastFile(), func(line string) error {
 		var newLine string
 		if options.Value != nil {
 			newLine, _ = sjson.Set(line, options.Name, addValue)
@@ -56,13 +56,13 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 				if addRegex == nil {
 					addRegex, err = regexp.Compile(options.From.Value)
 					if err != nil {
-						panic(err)
+						return err
 					}
 				}
 				res := addRegex.FindAllStringSubmatch(gjson.Get(line, options.From.Field).String(), -1)
 				newLine, err = sjson.Set(line, options.Name, res)
 				if err != nil {
-					panic(err)
+					return err
 				}
 			default:
 				panic(errors.New("unknown from type"))
@@ -71,6 +71,9 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 		newLines = append(newLines, newLine)
 		return nil
 	})
+	if err != nil {
+		panic(fmt.Errorf("addField error: %w", err))
+	}
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {

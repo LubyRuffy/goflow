@@ -18,6 +18,7 @@ type HttpRequestParams struct {
 	URLField  string `json:"urlField"`  // url的字段名称，默认是url
 	UserAgent string `json:"userAgent"` // 模拟的客户端，默认是defaultUserAgent
 	TLSVerify bool   `json:"tlsVerify"` // 是否验证tls
+	KeepBody  bool   `json:"keepBody"`  // 是否保存body
 	Workers   int    `json:"workers"`   // 并发限制
 	MaxSize   int    `json:"maxSize"`   // 最大长度，默认是100000，需要无限制改成-1
 }
@@ -71,17 +72,25 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 					f.WriteString(line + "\n")
 					return
 				}
-				defer resp.Body.Close()
 
-				// 不管是否成功都先把数据写入
-				var body []byte
-				body, err = ioutil.ReadAll(resp.Body)
-				if options.MaxSize > 0 && len(body) > options.MaxSize {
-					body = body[:options.MaxSize]
+				fields := map[string]interface{}{
+					"http_status": resp.StatusCode,
+					"http_header": utils.HttpHeaderToString(resp.Header),
 				}
-				line, _ = sjson.Set(line, "http_body", body)
-				line, _ = sjson.Set(line, "http_status", resp.StatusCode)
-				line, _ = sjson.Set(line, "http_header", utils.HttpHeaderToString(resp.Header))
+
+				if options.KeepBody {
+					defer resp.Body.Close()
+
+					// 不管是否成功都先把数据写入
+					var body []byte
+					body, err = ioutil.ReadAll(resp.Body)
+					if options.MaxSize > 0 && len(body) > options.MaxSize {
+						body = body[:options.MaxSize]
+					}
+					fields["http_body"] = string(body)
+				}
+
+				line, err = sjson.Set(line, options.URLField+"_requested", fields)
 
 				_, err = f.WriteString(line + "\n")
 				if err != nil {
