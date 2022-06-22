@@ -211,7 +211,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"code": 200,
 		"data": map[string]interface{}{
-			"workflowId": tm.taskId,
+			"jobId": tm.taskId,
 		},
 	})
 }
@@ -225,8 +225,8 @@ func view(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	var a struct {
-		WorkflowId string `json:"workflowId"`
-		TimeStamp  string `json:"timeStamp"`
+		JobId     string `json:"jobId"`
+		TimeStamp string `json:"timeStamp"`
 	}
 
 	defer r.Body.Close()
@@ -239,7 +239,7 @@ func view(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, ok := globalTaskMonitor.m.Load(a.WorkflowId)
+	t, ok := globalTaskMonitor.m.Load(a.JobId)
 	if !ok {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"code":    500,
@@ -249,9 +249,9 @@ func view(w http.ResponseWriter, r *http.Request) {
 	}
 	task := t.(*taskInfo)
 
-	workflowStatus := "1"
+	jobStatus := "1"
 	if task.finished {
-		workflowStatus = "2"
+		jobStatus = "2"
 	}
 
 	msgs, ts := task.receiveMsgs(a.TimeStamp)
@@ -260,14 +260,14 @@ func view(w http.ResponseWriter, r *http.Request) {
 		"code":    200,
 		"message": "success",
 		"data": map[string]interface{}{
-			"cost":           time.Since(task.started).String(),
-			"workflowId":     a.WorkflowId,
-			"timeStamp":      ts,
-			"workflowStatus": workflowStatus,
-			"logs":           msgs,
-			"html":           task.html,
-			"finished":       task.runner.Tasks,
-			"active":         task.actionIDRunning,
+			"cost":      time.Since(task.started).String(),
+			"jobId":     a.JobId,
+			"timeStamp": ts,
+			"jobStatus": jobStatus,
+			"logs":      msgs,
+			"html":      task.html,
+			"finished":  task.runner.Tasks,
+			"active":    task.actionIDRunning,
 		},
 	}
 

@@ -67,11 +67,11 @@
 <script>
     let lastTimeStamp = "";
 
-    function readTask(taskId) {
+    function readTask(jobId) {
         fetch('{{.}}/api/v1/job/view', {
             method: 'post',
             body: JSON.stringify({
-                "workflowId": taskId,
+                "jobId": jobId,
                 "timeStamp": lastTimeStamp,
             })
         }).then(response => response.json())
@@ -99,9 +99,9 @@
                     // hljs.highlightAll();
                 }
 
-                if (jsonData.data.workflowStatus === "1") {
+                if (jsonData.data.jobStatus === "1") {
                     setTimeout(() => {
-                        readTask(taskId)
+                        readTask(jobId)
                         }, 1000);
                 }
             })
@@ -123,9 +123,9 @@
             })
         }).then(response => response.json())
             .then(jsonData => {
-                taskId = jsonData.data.workflowId;
-                document.getElementById("message").innerHTML += "taskid: "+taskId + "<br/>";
-                readTask(taskId)
+                jobId = jsonData.data.jobId;
+                document.getElementById("message").innerHTML += "jobId: "+jobId + "<br/>";
+                readTask(jobId)
             })
             .catch(err => {
                 console.log(err);
