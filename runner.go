@@ -33,7 +33,7 @@ type PipeTask struct {
 	Result   *gocodefuncs.FuncResult `json:"result"`   // 结果
 	Children []*PipeRunner           `json:"-"`        // fork children
 	Fields   []string                `json:"fields"`   // fields list 列名
-	Error    error                   `json:"error"`    // 错误信息
+	Error    string                  `json:"error"`    // 错误信息
 }
 
 // Close remove tmp outfile
@@ -153,8 +153,8 @@ func (p *PipeRunner) AddWorkflow(pt *PipeTask) {
 	}
 
 	if p.hooks != nil {
-		if pt.Error != nil {
-			p.hooks.OnLog(logrus.ErrorLevel, "task error: %v", pt.Error)
+		if pt.Error != "" {
+			p.hooks.OnLog(logrus.ErrorLevel, "task error: %s", pt.Error)
 		}
 		p.hooks.OnWorkflowFinished(pt)
 	}
@@ -224,7 +224,7 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 			// 异常捕获
 			defer func() {
 				if r := recover(); r != nil {
-					pt.Error = r.(error)
+					pt.Error = r.(error).Error()
 					pt.Cost = time.Since(s)
 					p.AddWorkflow(pt)
 					panic(r)

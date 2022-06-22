@@ -291,7 +291,7 @@ func view(w http.ResponseWriter, r *http.Request) {
 			for i := range task.runner.Tasks {
 				ti := task.runner.Tasks[i]
 				color := ""
-				if ti.Error != nil {
+				if ti.Error != "" {
 					color = "#fc8fa3"
 				} else {
 					color = "#65d9ae"
