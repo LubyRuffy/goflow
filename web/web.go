@@ -126,7 +126,7 @@ func parse(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func create(w http.ResponseWriter, r *http.Request) {
+func run(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -321,8 +321,8 @@ func AppendToMuxRouter(router *mux.Router) {
 
 	// 任务
 	router.HandleFunc(Prefix+"/parse", parse)
-	router.HandleFunc(Prefix+"/api/v1/workflow/create", create)
-	router.HandleFunc(Prefix+"/api/v1/workflow/view", view)
+	router.HandleFunc(Prefix+"/api/v1/workflow/run", run)
+	router.HandleFunc(Prefix+"/api/v1/job/view", view)
 	router.HandleFunc(Prefix+"/file", func(w http.ResponseWriter, r *http.Request) {
 		fn := filepath.Base(r.FormValue("url"))
 		f := filepath.Join(os.TempDir(), fn)

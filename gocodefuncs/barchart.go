@@ -23,7 +23,8 @@ func BarChart(p Runner, params map[string]interface{}) *FuncResult {
 	err = utils.EachLine(p.GetLastFile(), func(line string) error {
 		name := gjson.Get(line, options.Name)
 		if !name.Exists() {
-			return fmt.Errorf(`pie chart data is invalid: %s is needed`, options.Name)
+			return nil
+			//return fmt.Errorf(`pie chart data is invalid: %s is needed`, options.Name)
 		}
 
 		if options.Value != "count()" {

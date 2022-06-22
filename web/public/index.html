@@ -68,7 +68,7 @@
     let lastTimeStamp = "";
 
     function readTask(taskId) {
-        fetch('{{.}}/api/v1/workflow/view', {
+        fetch('{{.}}/api/v1/job/view', {
             method: 'post',
             body: JSON.stringify({
                 "workflowId": taskId,
@@ -115,7 +115,7 @@
         document.getElementById("report").innerHTML = "";
         document.getElementById("message").innerHTML = "";
 
-        fetch('{{.}}/api/v1/workflow/create', {
+        fetch('{{.}}/api/v1/workflow/run', {
             method: 'post',
             body: JSON.stringify({
                 "astcode": document.getElementById("workflow").value.trim()
