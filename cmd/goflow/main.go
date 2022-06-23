@@ -26,8 +26,8 @@ func main() {
 		EnableBashCompletion:   true,
 		Authors: []*cli.Author{
 			{
-				Name:  "lubyruffy",
-				Email: "lubyruffy@gmail.com",
+				Name:  "LubyRuffy",
+				Email: "LubyRuffy@gmail.com",
 			},
 		},
 		Flags:    subcommands.GlobalOptions,

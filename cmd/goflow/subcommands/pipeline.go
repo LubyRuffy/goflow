@@ -8,7 +8,7 @@ import (
 	"github.com/LubyRuffy/goflow/translater"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/LubyRuffy/goflow/workflowast"
-	"github.com/lubyruffy/gofofa"
+	"github.com/LubyRuffy/gofofa"
 	"github.com/pkg/browser"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"

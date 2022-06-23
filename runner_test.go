@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/LubyRuffy/goflow/workflowast"
-	"github.com/lubyruffy/gofofa"
+	"github.com/LubyRuffy/gofofa"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -487,8 +487,9 @@ func TestPipeRunner_toMysql(t *testing.T) {
 
 	if utils.DockerStatusOk() {
 		// 用docker来跑mysql进行测试
-		d, err = utils.DockerRun("run", "--rm", "--detach", "--name", "gofofamysqltest", "--env", "MARIADB_ROOT_PASSWORD=my-secret-pw", "--env", "MYSQL_ROOT_PASSWORD=my-secret-pw", "-p", "3306:3306", "mariadb")
+		d, err = utils.DockerRun("run", "--rm", "--detach", "--name", "gofofamysqltest", "--env", "MARIADB_ROOT_PASSWORD=my-secret-pw", "--env", "MYSQL_ROOT_PASSWORD=my-secret-pw", "-p13306:3306", "mariadb")
 		assert.Nil(t, err)
+		assert.NotContains(t, string(d), "Error response from daemon")
 		assert.Regexp(t, "[0-9a-f]{64}", string(d))
 		defer func() {
 			_, err = utils.DockerRun("stop", "gofofamysqltest")
@@ -498,8 +499,8 @@ func TestPipeRunner_toMysql(t *testing.T) {
 		// 等待mariadb下载完成
 		s := time.Now()
 		for time.Since(s) < time.Minute {
-			d, err = utils.RunCmdNoExitError(utils.DockerRun("images"))
-			if err == nil && strings.Contains(string(d), "mariadb") {
+			d, err = utils.RunCmdNoExitError(utils.DockerRun("ps"))
+			if err == nil && strings.Contains(string(d), "gofofamysqltest") {
 				break
 			}
 			time.Sleep(time.Second)
@@ -529,13 +530,15 @@ func TestPipeRunner_toMysql(t *testing.T) {
 		assert.Contains(t, string(d), "-MariaDB-")
 
 		// 创建数据表测试
-		dsn = "root:my-secret-pw@tcp(127.0.0.1:3306)/aaa"
+		dsn = "root:my-secret-pw@tcp(127.0.0.1:13306)/aaa"
 		db, err = sql.Open("mysql", dsn)
+		assert.Nil(t, err)
+		err = db.Ping()
 		assert.Nil(t, err)
 		assertToSql(t, "to_mysql", dsn, db)
 
 		// 不创建数据表测试
-		dsn = "root:my-secret-pw@tcp(127.0.0.1:3306)/bbb"
+		dsn = "root:my-secret-pw@tcp(127.0.0.1:13306)/bbb"
 		db, err = sql.Open("mysql", dsn)
 		assert.Nil(t, err)
 		assertToSql(t, "to_mysql", dsn, db)

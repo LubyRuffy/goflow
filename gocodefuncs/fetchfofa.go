@@ -3,8 +3,8 @@ package gocodefuncs
 import (
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
-	"github.com/lubyruffy/gofofa"
-	"github.com/lubyruffy/gofofa/pkg/outformats"
+	"github.com/LubyRuffy/gofofa"
+	"github.com/LubyRuffy/gofofa/pkg/outformats"
 	"github.com/mitchellh/mapstructure"
 	"os"
 	"strings"

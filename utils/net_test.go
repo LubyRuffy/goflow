@@ -24,8 +24,10 @@ func TestFixURL(t *testing.T) {
 }
 
 func TestHttpHeaderToString(t *testing.T) {
-	assert.Equal(t, "a: 1\nb: 2,3\n", HttpHeaderToString(http.Header{
+	v := HttpHeaderToString(http.Header{
 		"a": []string{"1"},
 		"b": []string{"2", "3"},
-	}))
+	})
+	// map 顺序时随机的
+	assert.True(t, v == "a: 1\nb: 2,3\n" || v == "b: 2,3\na: 1\n")
 }
