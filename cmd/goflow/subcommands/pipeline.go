@@ -13,6 +13,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 var (
@@ -96,7 +97,7 @@ func pipelineAction(ctx *cli.Context) error {
 	}
 
 	if len(pipelineTaskOut) > 0 {
-		err = ioutil.WriteFile(pipelineTaskOut, []byte(pr.DumpTasks(false, "")), 0666)
+		err = ioutil.WriteFile(pipelineTaskOut, []byte(pr.DumpTasks(false, "", sync.Map{})), 0666)
 		if err != nil {
 			panic(err)
 		}

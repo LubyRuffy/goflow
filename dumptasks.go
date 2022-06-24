@@ -5,10 +5,11 @@ import (
 	"html/template"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // DumpTasks tasks dump to html
-func (p *PipeRunner) DumpTasks(server bool, prefix string) string {
+func (p *PipeRunner) DumpTasks(server bool, prefix string, fileMap sync.Map) string {
 	t, err := template.New("tasks").Funcs(template.FuncMap{
 		"toFileName": func(u string) string {
 			return filepath.Base(u)
@@ -17,6 +18,11 @@ func (p *PipeRunner) DumpTasks(server bool, prefix string) string {
 			return strings.HasPrefix(s, prefix)
 		},
 		"safeURL": func(u string, t string) template.URL {
+			// 替换
+			if v, ok := fileMap.Load(u); ok {
+				return template.URL(v.(string))
+			}
+
 			if server {
 				return template.URL(prefix + "/file?url=" + filepath.Base(u) + "&t=" + t)
 			}
