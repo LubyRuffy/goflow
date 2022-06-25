@@ -338,6 +338,7 @@ func New() *PipeRunner {
 		{"URLFix", gocodefuncs.UrlFix},
 		{"RenderDOM", gocodefuncs.RenderDOM},
 		{"ScanPort", gocodefuncs.ScanPort},
+		{"ParseURL", gocodefuncs.ParseURL},
 		{"HttpRequest", gocodefuncs.HttpRequest},
 		{"TextClassify", gocodefuncs.TextClassify},
 	}
