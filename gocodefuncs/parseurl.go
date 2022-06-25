@@ -16,6 +16,7 @@ import (
 
 type parseURLParams struct {
 	URLField string
+	ParseIP  bool // 是否解析ip
 }
 
 // ParseURL 解析url字段
@@ -63,7 +64,7 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 				}
 			}
 			fields := map[string]interface{}{
-				"url":      u,
+				"url":      u.String(),
 				"host":     u.Host,
 				"hostName": u.Hostname(),
 				"port":     port,
@@ -73,22 +74,26 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 				"file":     path.Base(u.Path),
 				"ext":      path.Ext(u.Path),
 			}
+
 			if ip := net.ParseIP(u.Hostname()); ip == nil {
 				// domain
 				var d *publicsuffix.DomainName
 				d, err = publicsuffix.Parse(u.Hostname())
 				fields["domain"] = d.SLD + "." + d.TLD
 				fields["subdomain"] = d.TRD
-				if ips, err := net.LookupIP(u.Hostname()); err == nil {
-					var ipStrings []string
-					for i := range ips {
-						ipStrings = append(ipStrings, ips[i].String())
+				if options.ParseIP {
+					if ips, err := net.LookupIP(u.Hostname()); err == nil {
+						var ipStrings []string
+						for i := range ips {
+							ipStrings = append(ipStrings, ips[i].String())
+						}
+						fields["ip"] = strings.Join(ipStrings, ",")
 					}
-					fields["ip"] = strings.Join(ipStrings, ",")
 				}
 			} else {
 				fields["ip"] = u.Hostname()
 			}
+
 			line, err = sjson.Set(line, options.URLField+"_parsed", fields)
 			if err != nil {
 				return err
