@@ -37,6 +37,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
       - size 取多少条，倒叙排序
       - title 报表标题
     - HttpRequest 执行http请求
+    - TextClassify 文本的正则分类器
 - 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 - （未完成）每一步都支持配置是否保留文件
 - （未完成）函数可以进行统一化的参数配置

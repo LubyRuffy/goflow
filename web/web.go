@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"text/template"
 	"time"
 )
@@ -203,7 +204,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 			tm.addMsg("create err: " + err.Error())
 		}
 
-		tm.html = p.DumpTasks(true, hostinfo+Prefix)
+		tm.html = p.DumpTasks(true, hostinfo+Prefix, sync.Map{})
 		tm.addMsg("<finished>")
 		tm.finish()
 	}()

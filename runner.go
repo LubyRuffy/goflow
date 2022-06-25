@@ -339,6 +339,7 @@ func New() *PipeRunner {
 		{"RenderDOM", gocodefuncs.RenderDOM},
 		{"ScanPort", gocodefuncs.ScanPort},
 		{"HttpRequest", gocodefuncs.HttpRequest},
+		{"TextClassify", gocodefuncs.TextClassify},
 	}
 	r.registerFunctions(innerFuncs...)
 
