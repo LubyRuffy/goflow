@@ -122,6 +122,7 @@ func FileLines(fileName string) (int64, error) {
 
 	buf := make([]byte, 1024)
 	var lines int64
+	var lastBytes int
 
 	for {
 		readBytes, err := file.Read(buf)
@@ -129,9 +130,14 @@ func FileLines(fileName string) (int64, error) {
 			if readBytes == 0 && err == io.EOF {
 				err = nil
 			}
+
+			if l := len(buf[:lastBytes]); l > 0 && buf[l-1] != '\n' {
+				lines++
+			}
 			return lines, err
 		}
 
 		lines += int64(bytes.Count(buf[:readBytes], []byte{'\n'}))
+		lastBytes = readBytes
 	}
 }

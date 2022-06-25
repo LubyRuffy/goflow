@@ -3,8 +3,10 @@ package gocodefuncs
 import (
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -25,6 +27,7 @@ type screenshotParam struct {
 	Timeout   int    `json:"timeout"`   // 整个浏览器操作超时
 	Workers   int    `json:"workers"`   // 并发限制
 	SaveField string `json:"saveField"` // 保存截图地址的字段
+	Sleep     int    `json:"sleep"`     // 加载完成后的等待事件，默认doc加载完成就截图
 }
 
 //chromeActions 完成chrome的headless操作
@@ -57,13 +60,49 @@ func chromeActions(u string, logf func(string, ...interface{}), timeout int, act
 	defer cancel()
 
 	realActions := []chromedp.Action{
-		chromedp.Navigate(u),
+		chromedp.ActionFunc(func(cxt context.Context) error {
+			// 等待完成，要么是body出来了，要么是资源加载完成
+			ch := make(chan error, 1)
+			go func(eCh chan error) {
+				err := chromedp.Navigate(u).Do(cxt)
+				if err != nil {
+					eCh <- err
+				}
+				var htmlDom string
+				err = chromedp.WaitReady("body", chromedp.ByQuery).Do(cxt)
+				if err == nil {
+					if err := chromedp.OuterHTML("html", &htmlDom).Do(cxt); err != nil {
+						log.Println("[DEBUG] fetch html failed:", err)
+					}
+				}
+				// 20211219发现如果存在JS前端框架 (如vue, react...) 执行等待读取.
+				html2Low := strings.ToLower(htmlDom)
+				if strings.Contains(html2Low, "javascript") || strings.Contains(html2Low, "</script>'") {
+					err = chromedp.WaitVisible("div", chromedp.ByQuery).Do(cxt)
+					if err := chromedp.OuterHTML("html", &htmlDom).Do(cxt); err != nil {
+						log.Println("[DEBUG] fetch html failed:", err)
+					}
+				}
+
+				eCh <- err
+			}(ch)
+
+			select {
+			case <-time.After(time.Duration(timeout) * time.Second):
+			case err := <-ch:
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}),
 	}
+
 	realActions = append(realActions, actions...)
+
 	// run task list
-	err = chromedp.Run(ctx,
-		realActions...,
-	)
+	err = chromedp.Run(ctx, realActions...)
 
 	return err
 }
@@ -72,7 +111,13 @@ func screenshotURL(p Runner, u string, options *screenshotParam) (string, int, e
 	p.Debugf("screenshot url: %s", u)
 
 	var buf []byte
-	err := chromeActions(u, p.Debugf, options.Timeout, chromedp.CaptureScreenshot(&buf))
+	var actions []chromedp.Action
+	if options.Sleep > 0 {
+		actions = append(actions, chromedp.Sleep(time.Second*time.Duration(options.Sleep)))
+	}
+	actions = append(actions, chromedp.CaptureScreenshot(&buf))
+
+	err := chromeActions(u, p.Debugf, options.Timeout, actions...)
 	if err != nil {
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
@@ -86,8 +131,8 @@ func screenshotURL(p Runner, u string, options *screenshotParam) (string, int, e
 	return fn, len(buf), err
 }
 
-// ScreenShot 截图
-func ScreenShot(p Runner, params map[string]interface{}) *FuncResult {
+// Screenshot 截图
+func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	var err error
 	var options screenshotParam
 	if err = mapstructure.Decode(params, &options); err != nil {

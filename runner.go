@@ -335,7 +335,7 @@ func New() *PipeRunner {
 		{"AddField", gocodefuncs.AddField},
 		{"LoadFile", gocodefuncs.LoadFile},
 		{"FlatArray", gocodefuncs.FlatArray},
-		{"Screenshot", gocodefuncs.ScreenShot},
+		{"Screenshot", gocodefuncs.Screenshot},
 		{"ToExcel", gocodefuncs.ToExcel},
 		{"ToSql", gocodefuncs.ToSql},
 		{"GenData", gocodefuncs.GenData},
@@ -345,6 +345,7 @@ func New() *PipeRunner {
 		{"ParseURL", gocodefuncs.ParseURL},
 		{"HttpRequest", gocodefuncs.HttpRequest},
 		{"TextClassify", gocodefuncs.TextClassify},
+		{"JoinFofa", gocodefuncs.JoinFofa},
 	}
 	r.registerFunctions(innerFuncs...)
 

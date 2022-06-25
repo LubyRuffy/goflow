@@ -21,14 +21,15 @@ func renderURLDOM(p Runner, u string, timeout int) (string, error) {
 	p.Debugf("render url dom: %s", u)
 
 	var html string
-	err := chromeActions(u, p.Debugf, timeout, chromedp.ActionFunc(func(ctx context.Context) error {
-		node, err := dom.GetDocument().Do(ctx)
-		if err != nil {
+	err := chromeActions(u, p.Debugf, timeout,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			node, err := dom.GetDocument().Do(ctx)
+			if err != nil {
+				return err
+			}
+			html, err = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
 			return err
-		}
-		html, err = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
-		return err
-	}))
+		}))
 	if err != nil {
 		return "", fmt.Errorf("renderURLDOM failed(%w): %s", err, u)
 	}

@@ -38,6 +38,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
       - title 报表标题
     - HttpRequest 执行http请求
     - TextClassify 文本的正则分类器
+    - JoinFofa 通过上文的结构来进行fofa请求，展开为新的数据文件，```{{{field}}}```的方式进行定义
 - 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 - （未完成）每一步都支持配置是否保留文件
 - （未完成）函数可以进行统一化的参数配置
@@ -55,6 +56,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
 - 支持整体打包为gzip文件
 - 支持用户自定义actionId，通过params参数传递即可，用于跟踪workflow的执行进度
 - 支持每一步都提供进度显示
+- 支持变量替换
 
 ## simple模式
 

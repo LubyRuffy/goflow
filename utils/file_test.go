@@ -9,6 +9,26 @@ import (
 
 func TestFileLines(t *testing.T) {
 	fn, err := WriteTempFile(".txt", func(f *os.File) error {
+		_, err := f.WriteString("aaa")
+		return err
+	})
+	assert.Nil(t, err)
+	assert.FileExists(t, fn)
+	n, err := FileLines(fn)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), n)
+
+	fn, err = WriteTempFile(".txt", func(f *os.File) error {
+		_, err := f.WriteString("aaa\nbbb")
+		return err
+	})
+	assert.Nil(t, err)
+	assert.FileExists(t, fn)
+	n, err = FileLines(fn)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(2), n)
+
+	fn, err = WriteTempFile(".txt", func(f *os.File) error {
 		v := ""
 		for i := 0; i < 100000; i++ {
 			v += fmt.Sprintf("-line %d\n", i)
@@ -18,7 +38,7 @@ func TestFileLines(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.FileExists(t, fn)
-	n, err := FileLines(fn)
+	n, err = FileLines(fn)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(100000), n)
 }
