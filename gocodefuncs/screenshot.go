@@ -22,7 +22,7 @@ var (
 	defaultUserAgent = "goflow/1.0"
 )
 
-type screenshotParam struct {
+type ScreenshotParam struct {
 	URLField  string `json:"urlField"`  // url的字段名称，默认是url
 	Timeout   int    `json:"timeout"`   // 整个浏览器操作超时
 	Workers   int    `json:"workers"`   // 并发限制
@@ -107,7 +107,7 @@ func chromeActions(u string, logf func(string, ...interface{}), timeout int, act
 	return err
 }
 
-func screenshotURL(p Runner, u string, options *screenshotParam) (string, int, error) {
+func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, error) {
 	p.Debugf("screenshot url: %s", u)
 
 	var buf []byte
@@ -134,7 +134,7 @@ func screenshotURL(p Runner, u string, options *screenshotParam) (string, int, e
 // Screenshot 截图
 func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	var err error
-	var options screenshotParam
+	var options ScreenshotParam
 	if err = mapstructure.Decode(params, &options); err != nil {
 		panic(fmt.Errorf("screenShot failed: %w", err))
 	}

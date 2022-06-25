@@ -40,7 +40,7 @@ func renderURLDOM(p Runner, u string, timeout int) (string, error) {
 // RenderDOM 动态渲染指定的URL，拼凑HTML
 func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 	var err error
-	var options screenshotParam
+	var options ScreenshotParam
 	if err = mapstructure.Decode(params, &options); err != nil {
 		panic(fmt.Errorf("screenShot failed: %w", err))
 	}
