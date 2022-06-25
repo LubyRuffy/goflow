@@ -277,6 +277,10 @@ func (p *PipeRunner) GZipAll() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func (p *PipeRunner) SetProgress(v float64) {
+	p.logger.Printf("progress: %f%%", 100*v)
+}
+
 // logHook is a hook designed for dealing with logs in test scenarios.
 type logHook struct {
 	runner *PipeRunner

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"os"
 )
@@ -109,4 +110,28 @@ func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err er
 		}
 	}
 	return
+}
+
+// FileLines 统计文件行
+func FileLines(fileName string) (int64, error) {
+	file, err := os.Open(fileName)
+
+	if err != nil {
+		return 0, err
+	}
+
+	buf := make([]byte, 1024)
+	var lines int64
+
+	for {
+		readBytes, err := file.Read(buf)
+		if err != nil {
+			if readBytes == 0 && err == io.EOF {
+				err = nil
+			}
+			return lines, err
+		}
+
+		lines += int64(bytes.Count(buf[:readBytes], []byte{'\n'}))
+	}
 }

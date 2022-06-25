@@ -14,7 +14,7 @@ func TestTextClassify(t *testing.T) {
 {"name":"这是要给运营商测试"}
 {"name":"这就是一个测试"}
 {"name":"这是生产系统"}`
-	fr := TextClassify(newTestRunner(data), map[string]interface{}{
+	fr := TextClassify(newTestRunner(t, data), map[string]interface{}{
 		"textField": "name",
 		"saveField": "name_tag",
 		"filters": [][]string{

@@ -10,6 +10,7 @@ import (
 
 type testRunner struct {
 	lastFile string
+	*testing.T
 }
 
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
@@ -24,8 +25,11 @@ func (t *testRunner) Warnf(format string, args ...interface{}) {
 }
 func (t *testRunner) Logf(level logrus.Level, format string, args ...interface{}) {
 }
+func (t *testRunner) SetProgress(v float64) {
+	t.T.Logf("progress: %f%%", 100*v)
+}
 
-func newTestRunner(jsonData string) *testRunner {
+func newTestRunner(t *testing.T, jsonData string) *testRunner {
 	fn, err := utils.WriteTempFile(".json", func(f *os.File) error {
 		f.WriteString(jsonData)
 		return nil
@@ -34,6 +38,7 @@ func newTestRunner(jsonData string) *testRunner {
 		panic(err)
 	}
 	return &testRunner{
+		T:        t,
 		lastFile: fn,
 	}
 }
@@ -44,7 +49,7 @@ func TestPieChart(t *testing.T) {
 {"name":"a"}
 {"name":"b"}
 {"name":"b"}`
-	fr := PieChart(newTestRunner(data), map[string]interface{}{
+	fr := PieChart(newTestRunner(t, data), map[string]interface{}{
 		"name":  "name",
 		"value": "count()",
 	})
@@ -60,7 +65,7 @@ func TestPieChart(t *testing.T) {
 {"name":"a","size":3}
 {"name":"b","size":4}
 {"name":"b","size":5}`
-	fr = PieChart(newTestRunner(data), map[string]interface{}{
+	fr = PieChart(newTestRunner(t, data), map[string]interface{}{
 		"name":  "name",
 		"value": "size",
 	})

@@ -10,6 +10,7 @@ type Runner interface {
 	Debugf(format string, args ...interface{})                   // 打印调试信息
 	Warnf(format string, args ...interface{})                    // 打印警告信息
 	Logf(level logrus.Level, format string, args ...interface{}) // 打印日志信息
+	SetProgress(p float64)                                       // 设置进度
 }
 
 // Artifact 过程中生成的文件

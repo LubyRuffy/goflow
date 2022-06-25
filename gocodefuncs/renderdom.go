@@ -5,6 +5,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
@@ -53,11 +54,26 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 		options.Timeout = 30
 	}
 
+	var lines int64
+	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
+		panic(fmt.Errorf("ParseURL error: %w", err))
+	}
+	if lines == 0 {
+		return &FuncResult{}
+	}
+
+	var processed int64
+
 	wp := workerpool.New(5)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		err = utils.EachLine(p.GetLastFile(), func(line string) error {
 			wp.Submit(func() {
+				defer func() {
+					atomic.AddInt64(&processed, 1)
+					p.SetProgress(float64(processed) / float64(lines))
+				}()
+
 				u := gjson.Get(line, options.URLField).String()
 				if len(u) == 0 {
 					return

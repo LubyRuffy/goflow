@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync/atomic"
 )
 
 type parseURLParams struct {
@@ -34,9 +35,22 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 		//panic(errors.New("ParseURL failed: no url field found:" + options.URLField))
 	}
 
+	var lines int64
+	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
+		panic(fmt.Errorf("ParseURL error: %w", err))
+	}
+	if lines == 0 {
+		return &FuncResult{}
+	}
+
+	var processed int64
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		err = utils.EachLine(p.GetLastFile(), func(line string) error {
+			defer func() {
+				atomic.AddInt64(&processed, 1)
+				p.SetProgress(float64(processed) / float64(lines))
+			}()
 			v := gjson.Get(line, options.URLField)
 			if !v.Exists() {
 				_, err = f.WriteString(line + "\n")

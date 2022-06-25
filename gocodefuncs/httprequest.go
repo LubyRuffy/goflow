@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync/atomic"
 )
 
 // HttpRequestParams http请求的参数
@@ -49,11 +50,26 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !options.TLSVerify},
 	}
 
+	var lines int64
+	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
+		panic(fmt.Errorf("ParseURL error: %w", err))
+	}
+	if lines == 0 {
+		return &FuncResult{}
+	}
+
+	var processed int64
+
 	wp := workerpool.New(options.Workers)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		err = utils.EachLine(p.GetLastFile(), func(line string) error {
 			wp.Submit(func() {
+				defer func() {
+					atomic.AddInt64(&processed, 1)
+					p.SetProgress(float64(processed) / float64(lines))
+				}()
+
 				u := gjson.Get(line, options.URLField).String()
 				if len(u) == 0 {
 					// 没有字段，直接写回原始行
