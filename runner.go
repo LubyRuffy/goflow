@@ -2,14 +2,11 @@ package goflow
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"sync"
@@ -240,11 +237,8 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 	}
 }
 
-// GZipAll 打包所有文件
-func (p *PipeRunner) GZipAll() ([]byte, error) {
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
-
+// TarGzAll 打包所有文件
+func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	var files []string
 	for _, t := range p.Tasks {
 		if len(t.Result.OutFile) > 0 {
@@ -257,24 +251,11 @@ func (p *PipeRunner) GZipAll() ([]byte, error) {
 		}
 	}
 
-	for _, file := range files {
-		zw.Name = filepath.Base(file)
-
-		data, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-		if _, err := zw.Write(data); err != nil {
-			return nil, err
-		}
-
-		if err := zw.Close(); err != nil {
-			return nil, err
-		}
-
-		zw.Reset(&buf)
+	tarGzData, err := utils.TarGzFiles(files)
+	if err != nil {
+		return nil, err
 	}
-	return buf.Bytes(), nil
+	return tarGzData, nil
 }
 
 func (p *PipeRunner) SetProgress(v float64) {

@@ -1,6 +1,7 @@
 package goflow
 
 import (
+	"archive/tar"
 	"bytes"
 	"compress/gzip"
 	"database/sql"
@@ -690,28 +691,25 @@ GenerateChart(GetRunner(), map[string]interface{}{
 	assert.True(t, called)
 	assert.Nil(t, err)
 
-	gzipdata, err := p.GZipAll()
+	tarGzData, err := p.TarGzAll()
 	assert.Nil(t, err)
-	assert.True(t, len(gzipdata) > 0)
+	assert.True(t, len(tarGzData) > 0)
 
-	buf := bytes.NewBuffer(gzipdata)
-	zr, err := gzip.NewReader(buf)
+	// ungzip
+	zr, err := gzip.NewReader(bytes.NewReader(tarGzData))
 	assert.Nil(t, err)
+	// untar
+	tr := tar.NewReader(zr)
 
 	filenum := 0
 	for {
-		zr.Multistream(false)
-		t.Log("Name: \n", zr.Name)
-		filenum++
-
-		_, err = io.ReadAll(zr)
-		assert.Nil(t, err)
-
-		err = zr.Reset(buf)
+		header, err := tr.Next()
 		if err == io.EOF {
-			break
+			break // End of archive
 		}
 		assert.Nil(t, err)
+		t.Log("Name: \n", header.Name)
+		filenum++
 	}
 
 	err = zr.Close()
@@ -719,44 +717,42 @@ GenerateChart(GetRunner(), map[string]interface{}{
 	assert.Equal(t, 7, filenum)
 }
 
-func TestPipeRunner_GZipAll(t *testing.T) {
+func TestPipeRunner_TarGzAll(t *testing.T) {
 	p := New()
 	_, err := p.Run(`FetchFile(GetRunner(), map[string]interface{} {
 	"url": "https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv",
 })`)
 	assert.Nil(t, err)
 
-	gzipdata, err := p.GZipAll()
+	tarGzData, err := p.TarGzAll()
 	assert.Nil(t, err)
-	assert.True(t, len(gzipdata) > 0)
+	assert.True(t, len(tarGzData) > 0)
 
-	gzipFile, err := utils.WriteTempFile(".gz", func(f *os.File) error {
-		_, err = f.Write(gzipdata)
+	tarGzFile, err := utils.WriteTempFile(".tar.gz", func(f *os.File) error {
+		_, err = f.Write(tarGzData)
 		return err
 	})
 	assert.Nil(t, err)
 
-	gzipFileData, err := ioutil.ReadFile(gzipFile)
+	tarGzOpen, err := os.Open(tarGzFile)
 	assert.Nil(t, err)
+	defer tarGzOpen.Close()
 
-	buf := bytes.NewBuffer(gzipFileData)
-	zr, err := gzip.NewReader(buf)
+	// ungzip
+	zr, err := gzip.NewReader(tarGzOpen)
 	assert.Nil(t, err)
+	// untar
+	tr := tar.NewReader(zr)
 
 	filenum := 0
 	for {
-		zr.Multistream(false)
-		t.Log("Name: \n", zr.Name)
-		filenum++
-
-		_, err = io.ReadAll(zr)
-		assert.Nil(t, err)
-
-		err = zr.Reset(buf)
+		header, err := tr.Next()
 		if err == io.EOF {
-			break
+			break // End of archive
 		}
 		assert.Nil(t, err)
+		t.Log("Name: \n", header.Name)
+		filenum++
 	}
 
 	err = zr.Close()

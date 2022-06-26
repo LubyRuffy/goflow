@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"archive/tar"
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"io"
+	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -140,4 +144,46 @@ func FileLines(fileName string) (int64, error) {
 		lines += int64(bytes.Count(buf[:readBytes], []byte{'\n'}))
 		lastBytes = readBytes
 	}
+}
+
+// TarGzFiles 打包文件为tar.gz
+func TarGzFiles(files []string) ([]byte, error) {
+	var buf bytes.Buffer
+	zr := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(zr)
+	for _, file := range files {
+		fi, err := os.Stat(file)
+		if err != nil {
+			log.Println("load file failed:", file, err)
+			continue
+		}
+		header, err := tar.FileInfoHeader(fi, file)
+		header.Name = filepath.Base(file)
+		// write header
+		if err = tw.WriteHeader(header); err != nil {
+			log.Println("compress file failed:", file, err)
+			continue
+		}
+
+		data, err := os.Open(file)
+		if err != nil {
+			log.Println("compress file failed:", file, err)
+			continue
+		}
+		if _, err = io.Copy(tw, data); err != nil {
+			log.Println("compress file failed:", file, err)
+			continue
+		}
+	}
+
+	// produce tar
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	// produce gzip
+	if err := zr.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
