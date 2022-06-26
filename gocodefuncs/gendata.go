@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"os"
@@ -10,7 +11,13 @@ import (
 func GenData(p Runner, params map[string]interface{}) *FuncResult {
 	var fn string
 	var err error
-	fn, err = utils.WriteTempFile("", func(f *os.File) error {
+
+	ext := ""
+	var m map[string]interface{}
+	if err = json.Unmarshal([]byte(params["data"].(string)), &m); err == nil {
+		ext = ".json"
+	}
+	fn, err = utils.WriteTempFile(ext, func(f *os.File) error {
 		_, err = f.WriteString(params["data"].(string))
 		return err
 	})
