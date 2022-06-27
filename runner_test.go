@@ -773,6 +773,7 @@ func TestPipeRunner_TarGzAll(t *testing.T) {
 
 func TestPipeRunner_Stop(t *testing.T) {
 	i := 0
+	var wg sync.WaitGroup
 	ch := make(chan bool, 1)
 	p := New().WithUserFunction([]interface{}{
 		"NoStop", func(r gocodefuncs.Runner, m map[string]interface{}) *gocodefuncs.FuncResult {
@@ -786,29 +787,34 @@ func TestPipeRunner_Stop(t *testing.T) {
 				return nil
 			}
 			for {
+				ch <- true
 				i++
 				time.Sleep(time.Millisecond * 100)
 				t.Log(time.Now())
 				if f() != nil {
 					break
 				}
-				ch <- true
 			}
 			return &gocodefuncs.FuncResult{}
 		},
 	})
-	go p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	}()
 	<-ch
 	p.Stop()
-	assert.True(t, i > 0 && i < 10)
+	wg.Wait()
+	assert.Equal(t, 1, i)
 
 	i = 0
 	ch = make(chan bool, 1)
 	p = New().WithUserFunction([]interface{}{
 		"NoStop", func(r gocodefuncs.Runner, m map[string]interface{}) *gocodefuncs.FuncResult {
 			utils.EachLineWithContext(r.GetContext(), r.GetLastFile(), func(line string) error {
-				i++
 				ch <- true
+				i++
 				t.Log(line)
 				time.Sleep(time.Second)
 				return nil
@@ -827,9 +833,13 @@ func TestPipeRunner_Stop(t *testing.T) {
 `)
 		return err
 	})
-
-	go p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	}()
 	<-ch
 	p.Stop()
-	assert.True(t, i > 0 && i < 10)
+	wg.Wait()
+	assert.Equal(t, 1, i)
 }

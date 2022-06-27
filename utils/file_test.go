@@ -4,12 +4,15 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestFileLines(t *testing.T) {
@@ -87,4 +90,43 @@ func TestTarGzFiles(t *testing.T) {
 		i++
 	}
 
+}
+
+func TestEachLineWithContext(t *testing.T) {
+	i := 0
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	fn, err := WriteTempFile(".json", func(f *os.File) error {
+		_, err := f.WriteString(`
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+`)
+		return err
+	})
+	assert.Nil(t, err)
+	assert.FileExists(t, fn)
+
+	startCh := make(chan bool, 1)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		EachLineWithContext(ctx, fn, func(line string) error {
+			startCh <- true
+			t.Log(line)
+			time.Sleep(time.Second)
+			i++
+			return nil
+		})
+	}()
+	<-startCh
+	cancel()
+	wg.Wait()
+
+	assert.Equal(t, 1, i)
 }
