@@ -247,6 +247,10 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	var files []string
 	for _, t := range p.Tasks {
+		if t.Result == nil {
+			continue
+		}
+
 		if len(t.Result.OutFile) > 0 {
 			files = append(files, t.Result.OutFile)
 		}
@@ -257,15 +261,22 @@ func (p *PipeRunner) TarGzAll() ([]byte, error) {
 		}
 	}
 
-	tarGzData, err := utils.TarGzFiles(files)
-	if err != nil {
-		return nil, err
+	if len(files) > 0 {
+		tarGzData, err := utils.TarGzFiles(files)
+		if err != nil {
+			return nil, err
+		}
+		return tarGzData, nil
 	}
-	return tarGzData, nil
+
+	return nil, nil
 }
 
 // SetProgress 设置进度
 func (p *PipeRunner) SetProgress(v float64) {
+	if p.hooks != nil && p.hooks.OnProgress != nil {
+		p.hooks.OnProgress(100 * v)
+	}
 	p.logger.Printf("progress: %f%%", 100*v)
 }
 
