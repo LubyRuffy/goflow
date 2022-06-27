@@ -46,7 +46,7 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	var newLines []string
-	err = utils.EachLine(p.GetLastFile(), func(line string) error {
+	err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 		var newLine string
 		if options.Value != nil {
 			newLine, _ = sjson.Set(line, options.Name, addValue)

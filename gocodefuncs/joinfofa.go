@@ -75,7 +75,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		err = utils.EachLine(p.GetLastFile(), func(line string) error {
+		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			defer func() {
 				atomic.AddInt64(&processed, 1)
 				p.SetProgress(float64(processed) / float64(lines))

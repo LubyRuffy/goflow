@@ -34,7 +34,7 @@ func GenerateChart(p Runner, params map[string]interface{}) *FuncResult {
 	pieItems := make([]opts.PieData, 0)
 	//lineItems := make([]opts.LineData, 0)
 
-	err = utils.EachLine(p.GetLastFile(), func(line string) error {
+	err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 		value := gjson.Get(line, "value")
 		count := gjson.Get(line, "count")
 		if !value.Exists() || !count.Exists() {

@@ -1,12 +1,14 @@
 package gocodefuncs
 
 import (
+	"context"
 	"github.com/sirupsen/logrus"
 )
 
 type Runner interface {
 	GetObject(name string) (interface{}, bool)                   // 查询全局注册的对象，用于内部调用，比如fofacli
 	GetLastFile() string                                         // GetLastFile 获取最后一次生成的文件
+	GetContext() context.Context                                 // GetContext 获取ctx
 	Debugf(format string, args ...interface{})                   // 打印调试信息
 	Warnf(format string, args ...interface{})                    // 打印警告信息
 	Logf(level logrus.Level, format string, args ...interface{}) // 打印日志信息

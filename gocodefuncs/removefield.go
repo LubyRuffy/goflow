@@ -19,7 +19,7 @@ func RemoveField(p Runner, params map[string]interface{}) *FuncResult {
 	var fn string
 	var err error
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		return utils.EachLine(p.GetLastFile(), func(line string) error {
+		return utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			var err error
 			newLine := line
 			for _, field := range fields {

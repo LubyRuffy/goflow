@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -199,7 +200,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 		})
 
 		tm.runner = p
-		_, err = p.Run(code)
+		_, err = p.Run(context.Background(), code)
 		if err != nil {
 			tm.addMsg("create err: " + err.Error())
 		}

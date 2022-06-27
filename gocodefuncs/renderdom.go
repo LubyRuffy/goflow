@@ -68,7 +68,7 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 	wp := workerpool.New(5)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		err = utils.EachLine(p.GetLastFile(), func(line string) error {
+		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			wp.Submit(func() {
 				defer func() {
 					atomic.AddInt64(&processed, 1)

@@ -21,7 +21,7 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 	defer f.Close()
 
 	lineNo := 2
-	err = utils.EachLine(p.GetLastFile(), func(line string) error {
+	err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 		v := gjson.Parse(line)
 		colNo := 'A'
 		v.ForEach(func(key, value gjson.Result) bool {

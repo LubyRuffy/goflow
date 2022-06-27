@@ -2,6 +2,7 @@ package goflow
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
@@ -44,6 +45,8 @@ func (p *PipeTask) Close() {
 
 // PipeRunner pipe运行器
 type PipeRunner struct {
+	ctx          context.Context        // 运行上下文，run时才进行设置
+	cancel       context.CancelFunc     // 中止运行的函数
 	gf           *coderunner.GoFunction // 函数注册
 	ast          *workflowast.Parser    // ast
 	content      string                 // 运行的内容
@@ -98,9 +101,10 @@ func (p *PipeRunner) doWebHook(info map[string]interface{}) {
 }
 
 // Run go code, not workflow
-func (p *PipeRunner) Run(code string) (reflect.Value, error) {
+func (p *PipeRunner) Run(ctx context.Context, code string) (reflect.Value, error) {
 	s := time.Now()
 	p.content = code
+	p.ctx, p.cancel = context.WithCancel(ctx)
 	v, err := p.gocodeRunner.Run(code)
 	p.doWebHook(map[string]interface{}{
 		"event": "finished",
@@ -172,7 +176,9 @@ func (p *PipeRunner) fork(pipe string) error {
 		return err
 	}
 	p.children = append(p.children, forkRunner)
-	_, err = forkRunner.Run(code)
+	newCtx, cancel := context.WithCancel(p.ctx)
+	defer cancel()
+	_, err = forkRunner.Run(newCtx, code)
 	return err
 }
 
@@ -258,8 +264,21 @@ func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	return tarGzData, nil
 }
 
+// SetProgress 设置进度
 func (p *PipeRunner) SetProgress(v float64) {
 	p.logger.Printf("progress: %f%%", 100*v)
+}
+
+// GetContext 获取ctx
+func (p *PipeRunner) GetContext() context.Context {
+	return p.ctx
+}
+
+// Stop 停止运行
+func (p *PipeRunner) Stop() {
+	if p.cancel != nil {
+		p.cancel()
+	}
 }
 
 // logHook is a hook designed for dealing with logs in test scenarios.

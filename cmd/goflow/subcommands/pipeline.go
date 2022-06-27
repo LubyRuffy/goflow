@@ -1,6 +1,7 @@
 package subcommands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/LubyRuffy/goflow"
@@ -83,7 +84,7 @@ func pipelineAction(ctx *cli.Context) error {
 	}
 
 	pr := goflow.New().WithObject(gocodefuncs.FofaObjectName, fofaCli)
-	_, err = pr.Run(pipelineContent)
+	_, err = pr.Run(context.Background(), pipelineContent)
 	if err != nil {
 		panic(err)
 	}

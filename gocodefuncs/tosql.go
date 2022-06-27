@@ -162,7 +162,7 @@ func ToSql(p Runner, params map[string]interface{}) *FuncResult {
 
 	var fn string
 	fn, err = utils.WriteTempFile(".sql", func(f *os.File) error {
-		err = utils.EachLine(p.GetLastFile(), func(line string) error {
+		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			var valueString string
 			for _, field := range columns {
 				var vs string

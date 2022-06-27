@@ -51,7 +51,7 @@ func TextClassify(p Runner, params map[string]interface{}) *FuncResult {
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		err = utils.EachLine(p.GetLastFile(), func(line string) error {
+		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			v := gjson.Get(line, options.TextField)
 			if !v.Exists() {
 				_, err = f.WriteString(line + "\n")

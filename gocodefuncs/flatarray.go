@@ -40,7 +40,7 @@ func FlatArray(p Runner, params map[string]interface{}) *FuncResult {
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		return utils.EachLine(p.GetLastFile(), func(line string) error {
+		return utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			for _, item := range gjson.Get(line, options.Field).Array() {
 				err = jsonArrayEnum(item, func(result gjson.Result) error {
 					_, err := f.WriteString(result.Raw + "\n")

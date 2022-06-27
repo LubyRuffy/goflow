@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"database/sql"
 	"github.com/LubyRuffy/goflow/gocodefuncs"
 	"github.com/LubyRuffy/goflow/utils"
@@ -60,7 +61,7 @@ func assertPipeCmd(t *testing.T, workflow string, testData string,
 		return ""
 	}
 
-	_, err = r.Run(code)
+	_, err = r.Run(context.Background(), code)
 	if errHandler(t, err) {
 		return ""
 	}
@@ -227,9 +228,9 @@ func TestLoad_screenshot(t *testing.T) {
 }
 
 func TestLoad_fork(t *testing.T) {
-	ast := workflowast.NewParser().MustParse(`load("./data/test.json") & [cut("a") | cut("b")]`)
+	code := workflowast.NewParser().MustParse(`load("./data/test.json") & [cut("a") | cut("b")]`)
 	p := New()
-	_, err := p.Run(ast)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	res, err := os.ReadFile(p.LastFile)
 	assert.Nil(t, err)
@@ -261,7 +262,7 @@ func TestLoad_fofa(t *testing.T) {
 	assert.Nil(t, err)
 	p := New().WithObject(gocodefuncs.FofaObjectName, fofacli)
 
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 
 	content, err := os.ReadFile(p.LastFile)
@@ -288,27 +289,31 @@ func TestPipeRunner_fix_url(t *testing.T) {
 	p := New()
 	code, err = workflowast.NewParser().Parse(`gen("{\"url\":\"1.1.1.1:81\"}") & fix_url()`)
 	assert.Nil(t, err)
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"url\":\"http://1.1.1.1:81\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("host")`))
+	code = workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("host")`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"host\":\"http://1.1.1.1:81\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"url\":\"1.1.1.1:80\"}") & fix_url()`))
+	code = workflowast.NewParser().MustParse(`gen("{\"url\":\"1.1.1.1:80\"}") & fix_url()`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"url\":\"http://1.1.1.1\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"url\":\"https://1.1.1.1:443\"}") & fix_url()`))
+	code = workflowast.NewParser().MustParse(`gen("{\"url\":\"https://1.1.1.1:443\"}") & fix_url()`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assertPipeRunnerContent(t, p, "{\"url\":\"https://1.1.1.1\"}\n")
 
 	p = New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("")`))
+	code = workflowast.NewParser().MustParse(`gen("{\"host\":\"1.1.1.1:81\"}") & fix_url("")`)
+	_, err = p.Run(context.Background(), code)
 	assert.Error(t, err)
 }
 
@@ -327,7 +332,8 @@ func TestPipeRunner_DumpTasks(t *testing.T) {
 	assert.Equal(t, "yes", out.String())
 
 	p := New()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"a\":\"1\",\"b\":2}") & [cut("a") | cut("b")]`))
+	code := workflowast.NewParser().MustParse(`gen("{\"a\":\"1\",\"b\":2}") & [cut("a") | cut("b")]`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	c := p.DumpTasks(false, "", sync.Map{})
 	assert.Contains(t, c, "fork")
@@ -339,14 +345,16 @@ func TestPipeRunner_DumpTasks(t *testing.T) {
 	defer ts.Close()
 
 	p.Close()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`))
+	code = workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assert.Equal(t, "image/png", p.LastTask.Result.Artifacts[0].FileType)
 	c = p.DumpTasks(true, "", sync.Map{})
 	assert.Contains(t, c, "<img")
 
 	p.Close()
-	_, err = p.Run(workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`))
+	code = workflowast.NewParser().MustParse(`gen("{\"host\":\"` + ts.URL + `\"}") & screenshot("host")`)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assert.Equal(t, "image/png", p.LastTask.Result.Artifacts[0].FileType)
 	c = p.DumpTasks(true, "/abcprefix", sync.Map{})
@@ -356,7 +364,8 @@ func TestPipeRunner_DumpTasks(t *testing.T) {
 
 func TestPipeRunner_Close(t *testing.T) {
 	p := New()
-	_, err := p.Run(workflowast.NewParser().MustParse(`load("./data/test.json") | cut("a")`))
+	code := workflowast.NewParser().MustParse(`load("./data/test.json") | cut("a")`)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	c, err := os.ReadFile(p.LastFile)
 	assert.Nil(t, err)
@@ -370,7 +379,7 @@ func TestPipeRunner_Close(t *testing.T) {
 func TestPipeRunner_toExcel(t *testing.T) {
 	p := New()
 	code := workflowast.NewParser().MustParse(`gen("{\"a\":1,\"b\":\"2\"}") & to_excel()`)
-	_, err := p.Run(code)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(p.LastTask.Result.Artifacts))
 	f, err := excelize.OpenFile(p.LastTask.Result.Artifacts[0].FilePath)
@@ -391,7 +400,7 @@ func assertToSql(t *testing.T, workFlowName string, dsn string, db *sql.DB) {
 	// 只生成文件
 	p := New()
 	code := workflowast.NewParser().MustParse(`gen("{\"a\":1,\"b\":\"2\",\"c\":true}") & ` + workFlowName + `("tbl")`)
-	_, err := p.Run(code)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	switch workFlowName {
 	case "to_sqlite":
@@ -410,7 +419,7 @@ func assertToSql(t *testing.T, workFlowName string, dsn string, db *sql.DB) {
 	// 分叉测试
 	p.Close()
 	code = workflowast.NewParser().MustParse(`gen("{\"a\":1,\"b\":\"2\",\"c\":\"3\"}") & [flat("a") | ` + workFlowName + `("tbl","a,b")]`)
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(p.LastTask.Children))
 	switch workFlowName {
@@ -444,7 +453,7 @@ func assertToSql(t *testing.T, workFlowName string, dsn string, db *sql.DB) {
 		// 有字段
 		p.Close()
 		code = workflowast.NewParser().MustParse(`gen("{\"a\":1,\"b\":\"2\",\"c\":\"3\"}") & ` + workFlowName + `("tbl","a,b","` + dsn + `")`)
-		_, err = p.Run(code)
+		_, err = p.Run(context.Background(), code)
 		assert.Nil(t, err)
 		d, err = os.ReadFile(p.LastTask.Result.Artifacts[0].FilePath)
 		assert.Nil(t, err)
@@ -465,7 +474,7 @@ func assertToSql(t *testing.T, workFlowName string, dsn string, db *sql.DB) {
 			panic("unknown workFlowName: " + workFlowName)
 		}
 		code = workflowast.NewParser().MustParse(`gen("{\"a\":1,\"b\":\"2\",\"c\":\"3\"}") & ` + workFlowName + `("tbl",` + params + `)`)
-		_, err = p.Run(code)
+		_, err = p.Run(context.Background(), code)
 		assert.Nil(t, err)
 		d, err = os.ReadFile(p.LastTask.Result.Artifacts[0].FilePath)
 		assert.Nil(t, err)
@@ -554,7 +563,7 @@ func TestPipeRunner_Run(t *testing.T) {
 	p := New()
 	ast := workflowast.NewParser()
 	code := ast.MustParse("gen(`{\"port\":1,\"ip\":\"1.1.1.1\"}`) & to_int(`port`) & sort(`port`) & [cut(`port`) | cut(`ip`)]")
-	_, err := p.Run(code)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	assert.Equal(t, 5, len(ast.CallList))
 	assert.Equal(t, 5, len(p.Tasks))
@@ -568,7 +577,7 @@ func TestPipeRunner_Run(t *testing.T) {
 
 	ast = workflowast.NewParser()
 	code = ast.MustParse("fofa(\"title=test\",\"host,ip,port,country\", 1000) & [flat(\"port\") & sort() & uniq(true) & sort(\"count\") & zq(\"tail 10\") & chart(\"pie\") | flat(\"country\") & sort() & uniq(true) & sort(\"count\") & zq(\"tail 10\") & chart(\"pie\") | zq(\"tail 1\") & screenshot(\"host\") & to_excel() | to_sqlite(\"tbl\", \"host,ip,port\")]")
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 
 	assert.Equal(t, 17, len(ast.CallList))
@@ -592,7 +601,7 @@ func TestPipeRunner_scanPort(t *testing.T) {
 		p := New()
 		ast := workflowast.NewParser()
 		code := ast.MustParse("scan_port(`" + u.Hostname() + "`,`" + u.Port() + "`)")
-		_, err = p.Run(code)
+		_, err = p.Run(context.Background(), code)
 		assert.Nil(t, err)
 
 		d, err = utils.ReadFirstLineOfFile(p.LastFile)
@@ -606,7 +615,7 @@ func TestPipeRunner_if_add(t *testing.T) {
 	p := New()
 	ast := workflowast.NewParser()
 	code := ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\"}`) & if_add(`has(protocol)`,`host`,`ip+\":\"+port`)")
-	_, err := p.Run(code)
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	d, err := utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
@@ -614,7 +623,7 @@ func TestPipeRunner_if_add(t *testing.T) {
 
 	p.Close()
 	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"http\"}`) & if_add(`has(protocol)`,`host`,`ip+\":\"+port`)")
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	d, err = utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
@@ -622,7 +631,7 @@ func TestPipeRunner_if_add(t *testing.T) {
 
 	p.Close()
 	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"http\"}`) & if_add(`protocol==\"http\"`,`host`,`ip+\":\"+port`)")
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	d, err = utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
@@ -630,7 +639,7 @@ func TestPipeRunner_if_add(t *testing.T) {
 
 	p.Close()
 	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"https\"}`) & if_add(`protocol==\"http\"`,`host`,`ip+\":\"+port`)")
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	d, err = utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
@@ -638,7 +647,7 @@ func TestPipeRunner_if_add(t *testing.T) {
 
 	p.Close()
 	code = ast.MustParse("gen(`{\"port\":80,\"ip\":\"1.1.1.1\",\"protocol\":\"https\"}`) & if_add(`protocol==\"http\" OR protocol==\"https\"`,`host`,`ip+\":\"+port`)")
-	_, err = p.Run(code)
+	_, err = p.Run(context.Background(), code)
 	assert.Nil(t, err)
 	d, err = utils.ReadFirstLineOfFile(p.LastFile)
 	assert.Nil(t, err)
@@ -659,7 +668,7 @@ func TestPipeRunner_WithWebHook(t *testing.T) {
 	}))
 	defer ts.Close()
 	p := New().WithWebHook(ts.URL)
-	_, err := p.Run(`GenFofaFieldData(GetRunner(), map[string]interface{} {
+	code := `GenFofaFieldData(GetRunner(), map[string]interface{} {
 	"query": "test",
 	"size": 1000,
 	"fields": "host,ip,port,title",
@@ -687,7 +696,8 @@ ZqQuery(GetRunner(), map[string]interface{}{
 
 GenerateChart(GetRunner(), map[string]interface{}{
     "type": "pie",
-})`)
+})`
+	_, err := p.Run(context.Background(), code)
 	assert.True(t, called)
 	assert.Nil(t, err)
 
@@ -719,9 +729,10 @@ GenerateChart(GetRunner(), map[string]interface{}{
 
 func TestPipeRunner_TarGzAll(t *testing.T) {
 	p := New()
-	_, err := p.Run(`FetchFile(GetRunner(), map[string]interface{} {
+	code := `FetchFile(GetRunner(), map[string]interface{} {
 	"url": "https://web.stanford.edu/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv",
-})`)
+})`
+	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 
 	tarGzData, err := p.TarGzAll()
@@ -758,4 +769,67 @@ func TestPipeRunner_TarGzAll(t *testing.T) {
 	err = zr.Close()
 	assert.Nil(t, err)
 	assert.Equal(t, 2, filenum)
+}
+
+func TestPipeRunner_Stop(t *testing.T) {
+	i := 0
+	ch := make(chan bool, 1)
+	p := New().WithUserFunction([]interface{}{
+		"NoStop", func(r gocodefuncs.Runner, m map[string]interface{}) *gocodefuncs.FuncResult {
+			defer close(ch)
+			f := func() error {
+				select {
+				case <-r.GetContext().Done():
+					return context.Canceled
+				default:
+				}
+				return nil
+			}
+			for {
+				i++
+				time.Sleep(time.Millisecond * 100)
+				t.Log(time.Now())
+				if f() != nil {
+					break
+				}
+				ch <- true
+			}
+			return &gocodefuncs.FuncResult{}
+		},
+	})
+	go p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	<-ch
+	p.Stop()
+	assert.True(t, i > 0 && i < 10)
+
+	i = 0
+	ch = make(chan bool, 1)
+	p = New().WithUserFunction([]interface{}{
+		"NoStop", func(r gocodefuncs.Runner, m map[string]interface{}) *gocodefuncs.FuncResult {
+			utils.EachLineWithContext(r.GetContext(), r.GetLastFile(), func(line string) error {
+				i++
+				ch <- true
+				t.Log(line)
+				time.Sleep(time.Second)
+				return nil
+			})
+			return &gocodefuncs.FuncResult{}
+		},
+	})
+	p.LastFile, _ = utils.WriteTempFile(".json", func(f *os.File) error {
+		_, err := f.WriteString(`
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+{"a":1}
+`)
+		return err
+	})
+
+	go p.Run(context.Background(), `NoStop(GetRunner(), nil)`)
+	<-ch
+	p.Stop()
+	assert.True(t, i > 0 && i < 10)
 }

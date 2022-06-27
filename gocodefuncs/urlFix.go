@@ -21,7 +21,7 @@ func UrlFix(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	fn, err = utils.WriteTempFile("", func(f *os.File) error {
-		return utils.EachLine(p.GetLastFile(), func(line string) error {
+		return utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			v := gjson.Get(line, field).String()
 			if len(v) == 0 {
 				// 没有字段，直接写回原始行

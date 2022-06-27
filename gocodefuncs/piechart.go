@@ -27,7 +27,7 @@ func PieChart(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	pieData := make(map[string]int64)
-	err = utils.EachLine(p.GetLastFile(), func(line string) error {
+	err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 		name := gjson.Get(line, options.Name)
 		if !name.Exists() {
 			return fmt.Errorf(`pie chart data is invalid: %s is needed`, options.Name)

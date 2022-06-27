@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"context"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,9 @@ func (t *testRunner) Logf(level logrus.Level, format string, args ...interface{}
 }
 func (t *testRunner) SetProgress(v float64) {
 	t.T.Logf("progress: %f%%", 100*v)
+}
+func (t *testRunner) GetContext() context.Context {
+	return context.Background()
 }
 
 func newTestRunner(t *testing.T, jsonData string) *testRunner {

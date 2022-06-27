@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"io"
 	"log"
 	"os"
@@ -14,6 +15,19 @@ import (
 var (
 	defaultPipeTmpFilePrefix = "goflow_pipeline_"
 )
+
+// EachLineWithContext 支持中止的方式
+func EachLineWithContext(ctx context.Context, filename string, f func(line string) error) error {
+	return EachLine(filename, func(line string) error {
+		select {
+		case <-ctx.Done():
+			return context.Canceled
+		default:
+		}
+
+		return f(line)
+	})
+}
 
 // EachLine 每行处理文件
 func EachLine(filename string, f func(line string) error) error {
