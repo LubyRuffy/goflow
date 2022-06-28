@@ -41,7 +41,7 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	var res [][]string
 	fofaCli, ok := p.GetObject(FofaObjectName)
 	if !ok {
-		panic(fmt.Errorf("HostSearch failed: doesn't set fofacli"))
+		panic(fmt.Errorf("HostSearch failed: doesn't set " + FofaObjectName))
 	}
 	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields)
 	if err != nil {
@@ -63,5 +63,5 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 }
 
 func init() {
-	registerObject(FofaObjectName, "shoule be gofofa.Client")
+	RegisterObject(FofaObjectName, "should be gofofa.Client")
 }

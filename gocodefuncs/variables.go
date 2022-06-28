@@ -5,7 +5,7 @@ import "sync"
 // 全局object的管理对象，进行统一管理，后续要在调用者哪里进行配置通知
 var globalObjects sync.Map
 
-func registerObject(name string, description string) {
+func RegisterObject(name string, description string) {
 	globalObjects.Store(name, description)
 }
 
