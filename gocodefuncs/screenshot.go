@@ -167,12 +167,20 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	wp := workerpool.New(options.Workers)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
+		var wpErr error
 		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			wp.Submit(func() {
 				defer func() {
 					atomic.AddInt64(&processed, 1)
 					p.SetProgress(float64(processed) / float64(lines))
 				}()
+
+				select {
+				case <-p.GetContext().Done():
+					wpErr = context.Canceled
+					return
+				default:
+				}
 
 				u := gjson.Get(line, options.URLField).String()
 				if len(u) == 0 {
@@ -218,7 +226,7 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 			return err
 		}
 		wp.StopWait()
-		return nil
+		return wpErr
 	})
 	if err != nil {
 		panic(fmt.Errorf("screenShot error: %w", err))
