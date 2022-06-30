@@ -3,7 +3,7 @@ module github.com/LubyRuffy/goflow
 go 1.17
 
 require (
-	github.com/LubyRuffy/gofofa v0.0.9
+	github.com/LubyRuffy/gofofa v0.1.10
 	github.com/Ullaakut/nmap/v2 v2.2.0
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/brimdata/zed v1.1.0
