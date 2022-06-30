@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"context"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/LubyRuffy/gofofa"
@@ -18,7 +19,9 @@ type FetchFofaParams struct {
 }
 
 var (
-	FofaObjectName = "fofaCli"
+	FofaObjectName         = "fofaCli"
+	FetchMaxSizeObjectName = "fetch_max_size"
+	DefaultFetchMaxSize    = 100000 // 最大获取记录数的大小
 )
 
 // FetchFofa 从fofa获取数据
@@ -36,6 +39,14 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("fofa fields cannot be empty"))
 	}
 
+	maxSize, ok := p.GetObject(FetchMaxSizeObjectName)
+	if !ok {
+		maxSize = DefaultFetchMaxSize
+	}
+	if options.Size > maxSize.(int) {
+		panic(fmt.Errorf("max size greater than: %d", maxSize))
+	}
+
 	fields := strings.Split(options.Fields, ",")
 
 	var res [][]string
@@ -43,6 +54,12 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	if !ok {
 		panic(fmt.Errorf("HostSearch failed: doesn't set " + FofaObjectName))
 	}
+
+	// 设置context
+	ctx, cancel := context.WithCancel(p.GetContext())
+	defer cancel()
+	fofaCli.(*gofofa.Client).SetContext(ctx)
+
 	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields)
 	if err != nil {
 		panic(fmt.Errorf("HostSearch failed: %w", err))
@@ -64,4 +81,5 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 
 func init() {
 	RegisterObject(FofaObjectName, "should be gofofa.Client")
+	RegisterObject(FetchMaxSizeObjectName, fmt.Sprintf("should be int, default %d", DefaultFetchMaxSize))
 }
