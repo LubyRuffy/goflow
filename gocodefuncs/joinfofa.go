@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	varReg = regexp.MustCompile(`{{{(.*?)}}}`)
+	varReg = regexp.MustCompile(`${{(.*?)}}`)
 )
 
 // expandStringWithVars展开变量，第一个参数是带有变量的query，第二个参数是json字符串，第三个参数是变量替换对象（replaceText->varFile)
@@ -64,7 +64,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 	var vars sync.Map
 	ms := varReg.FindAllStringSubmatch(options.Query, -1)
 	for i := range ms {
-		vars.Store(ms[i][0], ms[i][1]) // domain="{{{parsed_domain}}}" => {{{parsed_domain}}}, parsed_domain
+		vars.Store(ms[i][0], ms[i][1]) // domain="${{parsed_domain}}" => ${{parsed_domain}}, parsed_domain
 	}
 
 	// fofa连接
@@ -127,7 +127,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 
     // fofa获取并扩展数据， 根据domain查询，根据domain进行聚合
     JoinFofa(GetRunner(), map[string]interface{} {
-		"query": "type=subdomain && domain=\"{{{domain}}}\"",
+		"query": "type=subdomain && domain=\"${{domain}}\"",
 		"size": 10,
 		"fields": "host,domain,fid",
 	})
