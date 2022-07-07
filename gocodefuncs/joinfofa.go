@@ -8,30 +8,20 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"os"
-	"regexp"
 	"strings"
-	"sync"
 	"sync/atomic"
 )
 
-var (
-	varReg = regexp.MustCompile(`${{(.*?)}}`)
-)
-
-// expandStringWithVars展开变量，第一个参数是带有变量的query，第二个参数是json字符串，第三个参数是变量替换对象（replaceText->varFile)
-func expandStringWithVars(query string, jsonLine string, replaceMap sync.Map) string {
-	replaceMap.Range(func(key, value interface{}) bool {
-		v := gjson.Get(jsonLine, value.(string))
+// expandField 展开变量，第一个参数是带有变量的query，第二个参数是json字符串
+func expandField(query string, jsonLine string) string {
+	return utils.ExpandVarString(query, func(name string) (string, bool) {
+		v := gjson.Get(jsonLine, name)
 		if !v.Exists() {
 			// 字段不存在，就不能执行查询了
-			query = ""
-			return false
+			return "", false
 		}
-
-		query = strings.ReplaceAll(query, key.(string), v.String())
-		return true
+		return v.String(), true
 	})
-	return query
 }
 
 // JoinFofa 根据json行从fofa获取数据并且展开
@@ -60,13 +50,6 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 	}
 	var processed int64
 
-	// 解析变量
-	var vars sync.Map
-	ms := varReg.FindAllStringSubmatch(options.Query, -1)
-	for i := range ms {
-		vars.Store(ms[i][0], ms[i][1]) // domain="${{parsed_domain}}" => ${{parsed_domain}}, parsed_domain
-	}
-
 	// fofa连接
 	fofaCli, ok := p.GetObject(FofaObjectName)
 	if !ok {
@@ -81,7 +64,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 				p.SetProgress(float64(processed) / float64(lines))
 			}()
 
-			query := expandStringWithVars(options.Query, line, vars)
+			query := expandField(options.Query, line)
 			if len(query) == 0 {
 				// 不用查询
 				return nil

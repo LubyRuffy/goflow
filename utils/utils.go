@@ -6,10 +6,16 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"hash/fnv"
+	"log"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
+)
+
+var (
+	varReg = regexp.MustCompile(`\${{(.*?)}}`) // 变量定义
 )
 
 func read(r *bufio.Reader) ([]byte, error) {
@@ -142,4 +148,19 @@ func TopMapByValue(m map[string]int64, topSize int) PairList {
 	}
 	sort.Sort(sort.Reverse(pl))
 	return pl[0:topSize]
+}
+
+// ExpandVarString 展开变量，第一个参数是带有变量的query，第二个参数是回调函数
+func ExpandVarString(query string, getVar func(name string) (string, bool)) string {
+	// 解析变量
+	ms := varReg.FindAllStringSubmatch(query, -1)
+	for i := range ms {
+		// domain="${{parsed_domain}}" => ${{parsed_domain}}, parsed_domain
+		v, found := getVar(ms[i][1])
+		if !found {
+			log.Println("ExpandVarString not found variable:", ms[i][1])
+		}
+		query = strings.ReplaceAll(query, ms[i][0], v)
+	}
+	return query
 }

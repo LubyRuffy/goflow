@@ -169,3 +169,19 @@ func TestTopMapByValue(t *testing.T) {
 	assert.Equal(t, 3, len(TopMapByValue(m, -1)))
 	assert.Equal(t, 3, len(TopMapByValue(m, 0)))
 }
+
+func TestExpandVarString(t *testing.T) {
+	foundVar := func(name string) (string, bool) {
+		switch name {
+		case "a":
+			return "123", true
+		case "b":
+			return "234", true
+		}
+		return "", false
+	}
+	assert.Equal(t, "123", ExpandVarString(`${{a}}`, foundVar))
+	assert.Equal(t, "123-123", ExpandVarString(`${{a}}-${{a}}`, foundVar))
+	assert.Equal(t, "123-234", ExpandVarString(`${{a}}-${{b}}`, foundVar))
+	assert.Equal(t, "123-", ExpandVarString(`${{a}}-${{notexists}}`, foundVar))
+}
