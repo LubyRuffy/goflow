@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -156,9 +157,25 @@ func ExpandVarString(query string, getVar func(name string) (string, bool)) stri
 	ms := varReg.FindAllStringSubmatch(query, -1)
 	for i := range ms {
 		// domain="${{parsed_domain}}" => ${{parsed_domain}}, parsed_domain
-		v, found := getVar(ms[i][1])
+		varText := ms[i][1]
+		varName := varText
+		varDefaultValue := ""
+		if index := strings.Index(varText, "|"); index > 0 {
+			vars := strings.Split(varText, "|")
+			varName = strings.Trim(vars[0], " \t")
+			if v, err := strconv.Unquote(strings.Trim(vars[1], " \t")); err == nil {
+				varDefaultValue = v
+			} else {
+				varDefaultValue = vars[1]
+			}
+		}
+		v, found := getVar(varName)
 		if !found {
-			log.Println("ExpandVarString not found variable:", ms[i][1])
+			if varDefaultValue == "" {
+				log.Println("ExpandVarString not found variable:", ms[i][1])
+			} else {
+				v = varDefaultValue
+			}
 		}
 		query = strings.ReplaceAll(query, ms[i][0], v)
 	}

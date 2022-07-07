@@ -184,4 +184,8 @@ func TestExpandVarString(t *testing.T) {
 	assert.Equal(t, "123-123", ExpandVarString(`${{a}}-${{a}}`, foundVar))
 	assert.Equal(t, "123-234", ExpandVarString(`${{a}}-${{b}}`, foundVar))
 	assert.Equal(t, "123-", ExpandVarString(`${{a}}-${{notexists}}`, foundVar))
+
+	assert.Equal(t, "abc", ExpandVarString(`${{d|"abc"}}`, foundVar))
+	assert.Equal(t, "123", ExpandVarString(`${{d|123}}`, foundVar))
+
 }
