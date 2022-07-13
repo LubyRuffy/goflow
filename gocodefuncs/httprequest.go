@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
+	"time"
 )
 
 // HttpRequestParams http请求的参数
@@ -23,6 +25,9 @@ type HttpRequestParams struct {
 	KeepBody  bool   `json:"keepBody"`  // 是否保存body
 	Workers   int    `json:"workers"`   // 并发限制
 	MaxSize   int    `json:"maxSize"`   // 最大长度，默认是100000，需要无限制改成-1
+	TimeOut   int    `json:"timeOut"`   // 等待超时，单位为s，默认10s
+	Method    string `json:"method"`    // http请求method，默认是GET
+	Data      string `json:"data"`      // http请求的正文，默认为空
 }
 
 // HttpRequest http请求提取数据
@@ -39,17 +44,29 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 	if options.UserAgent == "" {
 		options.UserAgent = defaultUserAgent
 	}
+	if options.Method == "" {
+		options.Method = http.MethodGet
+	}
 	if options.Workers == 0 {
 		options.Workers = 5
 	}
 	if options.MaxSize == 0 {
 		options.MaxSize = 100000 // 100k
 	}
+	if options.TimeOut == 0 {
+		options.TimeOut = 10
+	}
 
 	// 配置是否验证tls
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !options.TLSVerify},
 	}
+	// 设置超时
+	timeout := time.Second * time.Duration(options.TimeOut)
+	tr.ResponseHeaderTimeout = timeout
+	tr.IdleConnTimeout = timeout
+	tr.TLSHandshakeTimeout = timeout
+	tr.ExpectContinueTimeout = timeout
 
 	var lines int64
 	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
@@ -91,7 +108,19 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 				url := utils.FixURL(u)
 				var resp *http.Response
 				client := &http.Client{Transport: tr}
-				resp, err = client.Get(url)
+
+				var dataReader *bytes.Reader
+				if len(options.Data) > 0 {
+					dataReader = bytes.NewReader([]byte(options.Data))
+				}
+
+				req, err := http.NewRequest(options.Method, url, dataReader)
+				if err != nil {
+					p.Warnf("HttpRequest failed: %s, %s", url, err)
+					f.WriteString(line + "\n")
+					return
+				}
+				resp, err = client.Do(req)
 				if err != nil {
 					p.Warnf("HttpRequest failed: %s, %s", url, err)
 					f.WriteString(line + "\n")
