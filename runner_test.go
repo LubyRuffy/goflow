@@ -843,3 +843,13 @@ func TestPipeRunner_Stop(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, 1, i)
 }
+
+func TestPipeRunner_SetObject(t *testing.T) {
+	p := New()
+	v, exist := p.GetObject("test")
+	assert.False(t, exist)
+	p.SetObject("test", "123")
+	v, exist = p.GetObject("test")
+	assert.True(t, exist)
+	assert.Equal(t, "123", v)
+}

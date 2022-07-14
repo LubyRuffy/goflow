@@ -70,6 +70,11 @@ func (p *PipeRunner) GetObject(name string) (interface{}, bool) {
 	return p.objects.Load(name)
 }
 
+// SetObject 获取全局变量
+func (p *PipeRunner) SetObject(name string, value interface{}) {
+	p.objects.Store(name, value)
+}
+
 // Logf 打印日志
 func (p *PipeRunner) Logf(level logrus.Level, format string, args ...interface{}) {
 	p.logger.Logf(level, format, args...)

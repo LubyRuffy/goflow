@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -109,7 +110,7 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 				var resp *http.Response
 				client := &http.Client{Transport: tr}
 
-				var dataReader *bytes.Reader
+				var dataReader io.Reader
 				if len(options.Data) > 0 {
 					dataReader = bytes.NewReader([]byte(options.Data))
 				}

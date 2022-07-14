@@ -27,5 +27,5 @@ func TestHttpRequest(t *testing.T) {
 	assert.Equal(t, int64(200), gjson.GetBytes(d, "url_requested.http_status").Int())
 	assert.Contains(t, gjson.GetBytes(d, "url_requested.http_header").String(), "Content-Type: text/plain; charset=utf-8\n")
 
-	//t.Log(string(d))
+	t.Log(string(d))
 }

@@ -17,6 +17,8 @@ type testRunner struct {
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
 	return nil, false
 }
+func (t *testRunner) SetObject(name string, v interface{}) {
+}
 func (t *testRunner) GetLastFile() string {
 	return t.lastFile
 }
