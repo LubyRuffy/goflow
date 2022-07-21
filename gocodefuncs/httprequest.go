@@ -40,7 +40,7 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	if options.URLField == "" {
-		options.URLField = "url"
+		panic(fmt.Errorf("urlField can not be empty"))
 	}
 	if options.UserAgent == "" {
 		options.UserAgent = defaultUserAgent

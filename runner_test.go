@@ -853,3 +853,17 @@ func TestPipeRunner_SetObject(t *testing.T) {
 	assert.True(t, exist)
 	assert.Equal(t, "123", v)
 }
+
+func TestPipeRunner_HttpRequest(t *testing.T) {
+	p := New()
+	_, err := p.Run(context.Background(), `
+GenData(GetRunner(), map[string]interface{}{
+"data": "{}",
+})
+
+HttpRequest(GetRunner(), map[string]interface{}{
+"urlField": "",
+"timeOut": 10,
+})`)
+	assert.Error(t, err)
+}
