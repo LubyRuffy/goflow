@@ -17,6 +17,7 @@ func TestHttpRequest(t *testing.T) {
 
 	data := `{"url":"` + ts.URL + `"}`
 	fr := HttpRequest(newTestRunner(t, data), map[string]interface{}{
+		"urlField": "url",
 		"keepBody": true,
 	})
 	assert.NotEqual(t, "", fr.OutFile)

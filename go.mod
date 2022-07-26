@@ -6,7 +6,7 @@ require (
 	github.com/LubyRuffy/gofofa v0.1.10
 	github.com/Ullaakut/nmap/v2 v2.2.0
 	github.com/brianvoe/gofakeit/v6 v6.16.0
-	github.com/brimdata/zed v1.1.0
+	github.com/brimdata/zed v1.2.0
 	github.com/chromedp/cdproto v0.0.0-20220620034043-93c6adfcda6a
 	github.com/chromedp/chromedp v0.8.2
 	github.com/gammazero/workerpool v1.1.2
