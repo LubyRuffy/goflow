@@ -3,7 +3,7 @@ module github.com/LubyRuffy/goflow
 go 1.17
 
 require (
-	github.com/LubyRuffy/gofofa v0.1.10
+	github.com/LubyRuffy/gofofa v0.1.11
 	github.com/Ullaakut/nmap/v2 v2.2.0
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/brimdata/zed v1.2.0
@@ -18,7 +18,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/prataprc/goparsec v0.0.0-20211219142520-daac0e635e7e
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.7.4
 	github.com/tidwall/gjson v1.14.1
 	github.com/tidwall/sjson v1.2.4
@@ -26,7 +26,7 @@ require (
 	github.com/urfave/cli/v2 v2.8.1
 	github.com/weppos/publicsuffix-go v0.15.0
 	github.com/xuri/excelize/v2 v2.6.0
-	golang.org/x/net v0.0.0-20220622184535-263ec571b305
+	golang.org/x/net v0.0.0-20220812174116-3211cb980234
 )
 
 require (
@@ -73,7 +73,7 @@ require (
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
-	golang.org/x/sys v0.0.0-20220622161953-175b2fd9d664 // indirect
+	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
