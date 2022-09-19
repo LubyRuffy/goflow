@@ -19,25 +19,27 @@ import (
 )
 
 var (
-	defaultUserAgent = "goflow/1.0"
-	GlobalProxy      = "proxy"
-	GlobalUserAgent  = "user_agent"
+	defaultUserAgent   = "goflow/1.0"
+	GlobalProxy        = "proxy"
+	GlobalUserAgent    = "userAgent"
+	UseGlobalProxy     = "useProxy"
+	UseGlobalUserAgent = "useGlobalUserAgent"
 )
 
 type ScreenshotParam struct {
-	URLField  string `json:"urlField"`             // url的字段名称，默认是url
-	Timeout   int    `json:"timeout"`              // 整个浏览器操作超时
-	Workers   int    `json:"workers"`              // 并发限制
-	SaveField string `json:"saveField"`            // 保存截图地址的字段
-	Sleep     int    `json:"sleep"`                // 加载完成后的等待事件，默认doc加载完成就截图
-	Proxy     string `json:"proxy,omitempty"`      // 用户自定义代理，为空时不配置
-	UserAgent string `json:"user_agent,omitempty"` // 用户自定义UA，为空时不配置
+	URLField  string `json:"urlField"`            // url的字段名称，默认是url
+	Timeout   int    `json:"timeout"`             // 整个浏览器操作超时
+	Workers   int    `json:"workers"`             // 并发限制
+	SaveField string `json:"saveField"`           // 保存截图地址的字段
+	Sleep     int    `json:"sleep"`               // 加载完成后的等待事件，默认doc加载完成就截图
+	Proxy     string `json:"proxy,omitempty"`     // 用户自定义代理，为空时不配置
+	UserAgent string `json:"userAgent,omitempty"` // 用户自定义UA，为空时不配置
 }
 
 type chromeActionsInput struct {
 	URL       string `json:"url"`
 	Proxy     string `json:"proxy,omitempty"`
-	UserAgent string `json:"user_agent,omitempty"`
+	UserAgent string `json:"userAgent,omitempty"`
 }
 
 //chromeActions 完成chrome的headless操作
@@ -178,10 +180,14 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	// 配置代理：积木块Proxy > 全局 proxy
-	options.Proxy = GetRuntimeValue(p, GlobalProxy, options.Proxy)
+	if UseGlobalValue(p, UseGlobalProxy) {
+		options.Proxy = GetRuntimeValue(p, GlobalProxy, options.Proxy)
+	}
 
 	// 配置自定义UA：积木块 > 全局
-	options.UserAgent = GetRuntimeValue(p, GlobalUserAgent, options.UserAgent)
+	if UseGlobalValue(p, UseGlobalUserAgent) {
+		options.UserAgent = GetRuntimeValue(p, GlobalUserAgent, options.UserAgent)
+	}
 
 	var artifacts []*Artifact
 
@@ -277,4 +283,14 @@ func GetRuntimeValue(p Runner, name, defaultValue string) string {
 		}
 	}
 	return defaultValue
+}
+
+// UseGlobalValue 根据存储的key决定是否使用全局变量
+func UseGlobalValue(p Runner, name string) bool {
+	if value, ok := p.GetObject(name); ok {
+		if use, ok := value.(bool); ok && use {
+			return true
+		}
+	}
+	return false
 }

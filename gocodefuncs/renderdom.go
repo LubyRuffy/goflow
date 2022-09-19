@@ -56,10 +56,14 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	// 配置代理：积木块Proxy > 全局 proxy
-	options.Proxy = GetRuntimeValue(p, GlobalProxy, options.Proxy)
+	if UseGlobalValue(p, UseGlobalProxy) {
+		options.Proxy = GetRuntimeValue(p, GlobalProxy, options.Proxy)
+	}
 
 	// 配置自定义UA：积木块 > 全局
-	options.UserAgent = GetRuntimeValue(p, GlobalUserAgent, options.UserAgent)
+	if UseGlobalValue(p, UseGlobalUserAgent) {
+		options.UserAgent = GetRuntimeValue(p, GlobalUserAgent, options.UserAgent)
+	}
 
 	var lines int64
 	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
