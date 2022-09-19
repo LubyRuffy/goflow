@@ -1,0 +1,22 @@
+package main
+
+func main() {
+
+	FetchFofa(GetRunner(), map[string]interface{}{
+		"query":  "port=80",
+		"fields": "host,ip,port,country,lastupdatetime",
+		"size":   5,
+	})
+
+	if lastFile := GetRunner().GetLastFile(); true {
+		FetchFofa(GetRunner(), map[string]interface{}{
+			"query":  "port=9091",
+			"fields": "host,ip,port,country,lastupdatetime",
+			"size":   5,
+		})
+		Merge(GetRunner(), map[string]interface{}{
+			"file": lastFile,
+		})
+	}
+
+}

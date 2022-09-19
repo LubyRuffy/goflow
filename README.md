@@ -39,6 +39,7 @@ Fofa的本质是数据，因此数据的编排是从获取Fofa的数据作为输
     - HttpRequest 执行http请求
     - TextClassify 文本的正则分类器
     - JoinFofa 通过上文的结构来进行fofa请求，展开为新的数据文件，```{{{field}}}```的方式进行定义
+    - Merge 支持合并不同的流程结果。思考：是否需要保留每个子分子的过程结果？
 - 支持缩写模式: ```fofa("body=icon && body=link", "body,host,ip,port") & grep_add("body", "(?is)<link[^>]*?rel[^>]*?icon[^>]*?>", "icon_tag") & drop("body")```
 - （未完成）每一步都支持配置是否保留文件
 - （未完成）函数可以进行统一化的参数配置
