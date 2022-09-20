@@ -413,6 +413,7 @@ func New() *PipeRunner {
 		{"HttpRequest", gocodefuncs.HttpRequest},
 		{"TextClassify", gocodefuncs.TextClassify},
 		{"JoinFofa", gocodefuncs.JoinFofa},
+		{"Merge", gocodefuncs.Merge},
 	}
 	r.registerFunctions(innerFuncs...)
 
