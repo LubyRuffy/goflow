@@ -252,9 +252,10 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 					FilePath: sfn,
 					FileSize: size,
 					FileType: "image/png",
-					FileName: filepath.Base(fn),
+					FileName: filepath.Base(sfn),
 					Memo:     u,
 				})
+				AddResource(p, sfn)
 			})
 
 			return nil
@@ -268,6 +269,8 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	if err != nil {
 		panic(fmt.Errorf("screenShot error: %w", err))
 	}
+
+	AddResourceField(p, options.SaveField)
 
 	return &FuncResult{
 		OutFile:   fn,
@@ -293,4 +296,33 @@ func UseGlobalValue(p Runner, name string) bool {
 		}
 	}
 	return false
+}
+
+//AddResourceField 在object中添加资源字段
+func AddResourceField(p Runner, field string) {
+	AddObjectSlice(p, utils.ResourceFieldsObjectName, field)
+}
+
+//AddResource 在object中添加资源列表
+func AddResource(p Runner, resource string) {
+	AddObjectSlice(p, utils.ResourcesObjectName, resource)
+}
+
+//AddStaticResource 在object中添加static资源
+func AddStaticResource(p Runner, resource string) {
+	AddObjectSlice(p, utils.StaticResourceObjectName, resource)
+}
+
+//AddObjectSlice 在object
+func AddObjectSlice(p Runner, objectName, ele string) {
+	var result []string
+	if res, ok := p.GetObject(objectName); ok {
+		if result, ok = res.([]string); !ok {
+			result = []string{}
+		}
+	} else {
+		result = []string{}
+	}
+	result = append(result, ele)
+	p.SetObject(objectName, result)
 }

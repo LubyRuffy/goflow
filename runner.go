@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
+	"github.com/tidwall/gjson"
 	"net/http"
 	"os"
 	"reflect"
@@ -246,6 +247,56 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 			p.AddWorkflow(pt)
 		})
 	}
+}
+
+// TarFinalOutputs 打包最终输出的json与对应的资源文件
+func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
+	var files []string
+	var err error
+
+	// 获取最后执行的文件结果
+	files = append(files, p.LastFile)
+
+	// 获取需要加载文件的字段
+	if flds, ok := p.GetObject(utils.ResourceFieldsObjectName); ok {
+		// 获取文件资源
+		if resources, ok := p.GetObject(utils.ResourcesObjectName); ok {
+			err = utils.EachLine(p.LastFile, func(line string) error {
+				for _, fld := range flds.([]string) {
+					file := gjson.Get(line, fld).String()
+					// 判断当前文件是否在生成文件列表中
+					if file != "" && utils.Contains(resources.([]string), file) {
+						files = append(files, file)
+					}
+				}
+				return nil
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	} else {
+		// 没有需要打包的字段
+	}
+
+	// 获取static文件(不存在于json文件里，也不会被修改)
+	if resources, ok := p.GetObject(utils.StaticResourceObjectName); ok {
+		for _, resource := range resources.([]string) {
+			files = append(files, resource)
+		}
+	}
+
+	// 文件打包
+	if len(files) > 0 {
+		tarGzData, err := utils.TarGzFiles(files)
+		if err != nil {
+			return nil, err
+		}
+		return tarGzData, nil
+	}
+
+	return nil, nil
 }
 
 // TarGzAll 打包所有文件
