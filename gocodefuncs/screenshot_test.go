@@ -59,3 +59,34 @@ func Test_chromeActions(t *testing.T) {
 		})
 	}
 }
+
+func TestAddObjectSlice(t *testing.T) {
+	runner := newTestRunner(t, "")
+	type args struct {
+		p          Runner
+		objectName string
+		ele        string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "测试添加object环境",
+			args: args{
+				p:          runner,
+				objectName: "test",
+				ele:        "test1",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := tt.args.p
+			AddObjectSlice(p, tt.args.objectName, tt.args.ele)
+			object, ok := p.GetObject(tt.args.objectName)
+			assert.True(t, ok)
+			assert.Equal(t, tt.args.ele, object.([]string)[0])
+		})
+	}
+}
