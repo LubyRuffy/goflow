@@ -37,7 +37,7 @@ func FixURL(v string) string {
 				defaultPort = true
 			}
 		}
-		if !defaultPort {
+		if !defaultPort && u.Port() != "" {
 			v += ":" + u.Port()
 		}
 

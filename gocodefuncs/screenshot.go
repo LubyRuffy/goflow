@@ -2,7 +2,6 @@ package gocodefuncs
 
 import (
 	"fmt"
-	"github.com/LubyRuffy/goflow/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/chromedp/chromedp"
 	"github.com/gammazero/workerpool"
 	"github.com/mitchellh/mapstructure"
@@ -19,20 +19,38 @@ import (
 )
 
 var (
-	defaultUserAgent = "goflow/1.0"
+	defaultUserAgent   = "goflow/1.0"
+	GlobalProxy        = "proxy"
+	GlobalUserAgent    = "userAgent"
+	UseGlobalProxy     = "useProxy"
+	UseGlobalUserAgent = "useGlobalUserAgent"
 )
 
 type ScreenshotParam struct {
-	URLField  string `json:"urlField"`  // url的字段名称，默认是url
-	Timeout   int    `json:"timeout"`   // 整个浏览器操作超时
-	Workers   int    `json:"workers"`   // 并发限制
-	SaveField string `json:"saveField"` // 保存截图地址的字段
-	Sleep     int    `json:"sleep"`     // 加载完成后的等待事件，默认doc加载完成就截图
+	URLField  string `json:"urlField"`            // url的字段名称，默认是url
+	Timeout   int    `json:"timeout"`             // 整个浏览器操作超时
+	Workers   int    `json:"workers"`             // 并发限制
+	SaveField string `json:"saveField"`           // 保存截图地址的字段
+	Sleep     int    `json:"sleep"`               // 加载完成后的等待事件，默认doc加载完成就截图
+	Proxy     string `json:"proxy,omitempty"`     // 用户自定义代理，为空时不配置
+	UserAgent string `json:"userAgent,omitempty"` // 用户自定义UA，为空时不配置
+}
+
+type chromeActionsInput struct {
+	URL       string `json:"url"`
+	Proxy     string `json:"proxy,omitempty"`
+	UserAgent string `json:"userAgent,omitempty"`
 }
 
 //chromeActions 完成chrome的headless操作
-func chromeActions(u string, logf func(string, ...interface{}), timeout int, actions ...chromedp.Action) error {
+func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), timeout int, actions ...chromedp.Action) error {
 	var err error
+
+	// set user-agent
+	if in.UserAgent == "" {
+		in.UserAgent = defaultUserAgent
+	}
+
 	// prepare the chrome options
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true),
@@ -48,9 +66,14 @@ func chromeActions(u string, logf func(string, ...interface{}), timeout int, act
 		chromedp.NoDefaultBrowserCheck,
 		chromedp.NoSandbox,
 		chromedp.DisableGPU,
-		chromedp.UserAgent(defaultUserAgent), // chromedp.Flag("user-agent", defaultUserAgent)
+		chromedp.UserAgent(in.UserAgent), // chromedp.Flag("user-agent", defaultUserAgent)
 		chromedp.WindowSize(1024, 768),
 	)
+
+	// set proxy if exists
+	if in.Proxy != "" {
+		opts = append(opts, chromedp.ProxyServer(in.Proxy))
+	}
 
 	allocCtx, bcancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer bcancel()
@@ -64,7 +87,7 @@ func chromeActions(u string, logf func(string, ...interface{}), timeout int, act
 			// 等待完成，要么是body出来了，要么是资源加载完成
 			ch := make(chan error, 1)
 			go func(eCh chan error) {
-				err := chromedp.Navigate(u).Do(cxt)
+				err := chromedp.Navigate(in.URL).Do(cxt)
 				if err != nil {
 					eCh <- err
 				}
@@ -117,7 +140,11 @@ func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, e
 	}
 	actions = append(actions, chromedp.CaptureScreenshot(&buf))
 
-	err := chromeActions(u, p.Debugf, options.Timeout, actions...)
+	err := chromeActions(chromeActionsInput{
+		URL:       u,
+		Proxy:     options.Proxy,
+		UserAgent: options.UserAgent,
+	}, p.Debugf, options.Timeout, actions...)
 	if err != nil {
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
@@ -150,6 +177,16 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	}
 	if options.Workers == 0 {
 		options.Workers = 5
+	}
+
+	// 配置代理：积木块Proxy > 全局 proxy
+	if UseGlobalValue(p, UseGlobalProxy) {
+		options.Proxy = GetRuntimeValue(p, GlobalProxy, options.Proxy)
+	}
+
+	// 配置自定义UA：积木块 > 全局
+	if UseGlobalValue(p, UseGlobalUserAgent) {
+		options.UserAgent = GetRuntimeValue(p, GlobalUserAgent, options.UserAgent)
 	}
 
 	var artifacts []*Artifact
@@ -215,9 +252,10 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 					FilePath: sfn,
 					FileSize: size,
 					FileType: "image/png",
-					FileName: filepath.Base(fn),
+					FileName: filepath.Base(sfn),
 					Memo:     u,
 				})
+				AddResource(p, sfn)
 			})
 
 			return nil
@@ -232,8 +270,59 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("screenShot error: %w", err))
 	}
 
+	AddResourceField(p, options.SaveField)
+
 	return &FuncResult{
 		OutFile:   fn,
 		Artifacts: artifacts,
 	}
+}
+
+// GetRuntimeValue 在 defaultValue 为空时，获取Runner中的环境变量并返回
+func GetRuntimeValue(p Runner, name, defaultValue string) string {
+	if defaultValue == "" {
+		if value, ok := p.GetObject(name); ok {
+			return value.(string)
+		}
+	}
+	return defaultValue
+}
+
+// UseGlobalValue 根据存储的key决定是否使用全局变量
+func UseGlobalValue(p Runner, name string) bool {
+	if value, ok := p.GetObject(name); ok {
+		if use, ok := value.(bool); ok && use {
+			return true
+		}
+	}
+	return false
+}
+
+//AddResourceField 在object中添加资源字段
+func AddResourceField(p Runner, field string) {
+	AddObjectSlice(p, utils.ResourceFieldsObjectName, field)
+}
+
+//AddResource 在object中添加资源列表
+func AddResource(p Runner, resource string) {
+	AddObjectSlice(p, utils.ResourcesObjectName, resource)
+}
+
+//AddStaticResource 在object中添加static资源
+func AddStaticResource(p Runner, resource string) {
+	AddObjectSlice(p, utils.StaticResourceObjectName, resource)
+}
+
+//AddObjectSlice 在object
+func AddObjectSlice(p Runner, objectName, ele string) {
+	var result []string
+	if res, ok := p.GetObject(objectName); ok {
+		if result, ok = res.([]string); !ok {
+			result = []string{}
+		}
+	} else {
+		result = []string{}
+	}
+	result = append(result, ele)
+	p.SetObject(objectName, result)
 }

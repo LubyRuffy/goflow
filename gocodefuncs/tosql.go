@@ -221,6 +221,7 @@ func ToSql(p Runner, params map[string]interface{}) *FuncResult {
 		})
 	}
 
+	AddStaticResource(p, fn)
 	return &FuncResult{
 		Artifacts: artifacts,
 	}

@@ -6,18 +6,21 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"sync"
 	"testing"
 )
 
 type testRunner struct {
 	lastFile string
+	objects  sync.Map
 	*testing.T
 }
 
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
-	return nil, false
+	return t.objects.Load(name)
 }
 func (t *testRunner) SetObject(name string, v interface{}) {
+	t.objects.Store(name, v)
 }
 func (t *testRunner) GetLastFile() string {
 	return t.lastFile

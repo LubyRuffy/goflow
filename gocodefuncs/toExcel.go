@@ -50,6 +50,7 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("toExcel failed: %w", err))
 	}
 
+	AddStaticResource(p, fn)
 	return &FuncResult{
 		Artifacts: []*Artifact{
 			{

@@ -181,3 +181,13 @@ func ExpandVarString(query string, getVar func(name string) (string, bool)) stri
 	}
 	return query
 }
+
+// Contains string contains in a slice
+func Contains(s []string, str string) bool {
+	for _, ele := range s {
+		if str == ele {
+			return true
+		}
+	}
+	return false
+}
