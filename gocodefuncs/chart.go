@@ -102,6 +102,7 @@ func GenerateChart(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("generateChart error: %w", err))
 	}
 
+	AddStaticResource(p, f)
 	return &FuncResult{
 		Artifacts: []*Artifact{{
 			FilePath: f,
