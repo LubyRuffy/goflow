@@ -78,12 +78,18 @@ func pipelineAction(ctx *cli.Context) error {
 		}
 	}
 
-	fofaCli, err := gofofa.NewClient()
-	if err != nil {
-		panic(fmt.Errorf("fofa connect err: %w", err))
-	}
-
-	pr := goflow.New().WithObject(gocodefuncs.FofaObjectName, fofaCli)
+	pr := goflow.New().WithHooks(&goflow.Hooks{
+		OnGetObject: func(name string) (interface{}, bool) {
+			if name == gocodefuncs.FofaObjectName {
+				fofaCli, err := gofofa.NewClient()
+				if err != nil {
+					panic(fmt.Errorf("fofa connect err: %w", err))
+				}
+				return fofaCli, true
+			}
+			return nil, false
+		},
+	})
 	_, err = pr.Run(context.Background(), pipelineContent)
 	if err != nil {
 		panic(err)

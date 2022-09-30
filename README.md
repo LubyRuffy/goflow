@@ -145,3 +145,8 @@ fofa("title=test","host,ip,port,country", 1000) & [flat("port") & sort() & uniq(
 scan_port(`10.10.10.0/24`, `80,443,22,445,3389`) & grab() & screenshot() & crawler() & tag() & vul()
 scan_port(`10.10.10.0/24`, `22,80,6379,9200`) & grab() & tag() & vul()
 ```
+
+## goflow命令行执行
+```shell
+./goflow -file ./tests/scanport_nmap.goflow
+```

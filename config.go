@@ -7,6 +7,28 @@ import (
 // WithHooks user defined hooks
 func (p *PipeRunner) WithHooks(hooks *Hooks) *PipeRunner {
 	p.hooks = hooks
+	if p.hooks.OnWorkflowStart == nil {
+		p.hooks.OnWorkflowStart = func(funcName string, actionID string) {
+		}
+	}
+	if p.hooks.OnWorkflowFinished == nil {
+		p.hooks.OnWorkflowFinished = func(pt *PipeTask) {
+		}
+	}
+	if p.hooks.OnLog == nil {
+		p.hooks.OnLog = func(level logrus.Level, format string, args ...interface{}) {
+		}
+	}
+	if p.hooks.OnProgress == nil {
+		p.hooks.OnProgress = func(p float64) {
+		}
+	}
+	if p.hooks.OnGetObject == nil {
+		p.hooks.OnGetObject = func(name string) (interface{}, bool) {
+			return nil, false
+		}
+	}
+
 	return p
 }
 

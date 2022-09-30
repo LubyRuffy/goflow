@@ -1,0 +1,9 @@
+package main
+
+func main() {
+	ScanPort(GetRunner(), map[string]interface{}{
+		"targets": "127.0.0.1",
+		"ports":   "22,80,443,1080,3389,8000,8080,8443",
+		"nmapDir": "e:\\\\",
+	})
+}

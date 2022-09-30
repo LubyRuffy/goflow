@@ -5,6 +5,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/Ullaakut/nmap/v2"
 	"github.com/mitchellh/mapstructure"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 type ScanPortParam struct {
 	Targets string `json:"targets"` // 扫描目标
 	Ports   string `json:"ports"`   // 扫描端口
+	NmapDir string `json:"nmapDir"` // 扫描端口
 }
 
 // ScanPort 扫描端口
@@ -37,6 +39,22 @@ func ScanPort(p Runner, params map[string]interface{}) *FuncResult {
 		nmap.WithPorts(options.Ports),
 		nmap.WithOpenOnly(),
 	}
+
+	var searchFilePath []string
+	// 用户指定的路径优先
+	if len(options.NmapDir) > 0 {
+		searchFilePath = append(searchFilePath, []string{
+			filepath.Join(options.NmapDir, "nmap.exe"),
+			filepath.Join(options.NmapDir, "Nmap", "nmap.exe"),
+		}...)
+
+		defaultNmapPath := utils.LoadFirstExistsFile(searchFilePath)
+		if len(defaultNmapPath) > 0 {
+			opts = append(opts, nmap.WithBinaryPath(defaultNmapPath))
+			log.Println("use user defined nmap path:", defaultNmapPath)
+		}
+	}
+
 	scanner, err := nmap.NewScanner(
 		opts...,
 	)
@@ -45,11 +63,13 @@ func ScanPort(p Runner, params map[string]interface{}) *FuncResult {
 			panic(fmt.Errorf("ScanPort error: %w", err))
 		}
 
-		defaultNmapPath := utils.LoadFirstExistsFile([]string{
+		searchFilePath = append(searchFilePath, []string{
 			"nmap.exe",
 			filepath.Join(os.Getenv("PROGRAMFILES"), "Nmap", "nmap.exe"),
 			filepath.Join(os.Getenv("PROGRAMFILES(X86)"), "Nmap", "nmap.exe"),
-		})
+		}...)
+
+		defaultNmapPath := utils.LoadFirstExistsFile(searchFilePath)
 		if len(defaultNmapPath) != 0 {
 			opts = append(opts, nmap.WithBinaryPath(defaultNmapPath))
 			scanner, err = nmap.NewScanner(
