@@ -1,0 +1,18 @@
+package main
+
+func main() {
+
+	FetchFofa(GetRunner(), map[string]interface{}{
+		"actionId": "HO-DCP,+|$|,G.YTVhZg",
+		"query":    "banner=\"Authentication(0x00)\"",
+		"fields":   "host,ip,port,lastupdatetime",
+		"size":     10,
+	})
+
+	AddField(GetRunner(), map[string]interface{}{
+		"actionId": "GOyKajBz{CzOuK,r83kB",
+		"name":     "url",
+		"value":    "socks5://${{host}}",
+	})
+
+}

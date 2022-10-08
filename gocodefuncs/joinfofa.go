@@ -5,24 +5,11 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/LubyRuffy/gofofa"
 	"github.com/mitchellh/mapstructure"
-	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"os"
 	"strings"
 	"sync/atomic"
 )
-
-// expandField 展开变量，第一个参数是带有变量的query，第二个参数是json字符串
-func expandField(query string, jsonLine string) string {
-	return utils.ExpandVarString(query, func(name string) (string, bool) {
-		v := gjson.Get(jsonLine, name)
-		if !v.Exists() {
-			// 字段不存在，就不能执行查询了
-			return "", false
-		}
-		return v.String(), true
-	})
-}
 
 // JoinFofa 根据json行从fofa获取数据并且展开
 func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
@@ -64,7 +51,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 				p.SetProgress(float64(processed) / float64(lines))
 			}()
 
-			query := expandField(options.Query, line)
+			query := ExpendVarWithJsonLine(p, options.Query, line)
 			if len(query) == 0 {
 				// 不用查询
 				return nil

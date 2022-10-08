@@ -38,18 +38,17 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("addField failed: neithor value nor from"))
 	}
 
-	var addValue string
 	var addRegex *regexp.Regexp
-
-	if options.Value != nil {
-		addValue = *options.Value
-	}
 
 	var newLines []string
 	err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 		var newLine string
 		if options.Value != nil {
-			addValue = expandField(addValue, line)
+			addValue := ExpendVarWithJsonLine(p, *options.Value, line)
+			if len(addValue) == 0 {
+				// 不用查询
+				return nil
+			}
 			newLine, _ = sjson.Set(line, options.Name, addValue)
 		} else {
 			switch options.From.Method {

@@ -18,8 +18,33 @@ import (
 	"time"
 )
 
+// ExpendVarWithJsonLine 展开变量，除了全局还有json对应的行
+func ExpendVarWithJsonLine(p Runner, value string, jsonLine string) string {
+	return utils.ExpandVarString(value, func(name string) (string, bool) {
+		// 先检查json line
+		if v := gjson.Get(jsonLine, name); v.Exists() {
+			if v.Str != "" {
+				// 字符串类型返回时删除多余的双引号
+				return v.Str, true
+			}
+			return v.String(), true
+		}
+
+		// 再检查全局配置
+		if p != nil {
+			v, exists := p.GetObject(name)
+			if exists {
+				return v.(string), exists
+			}
+		}
+
+		return "", false
+	})
+}
+
 // HttpRequestParams http请求的参数
 type HttpRequestParams struct {
+	Uri       string `json:"uri"`       // url的全路径，跟urlField二选一，uri的权重更高
 	URLField  string `json:"urlField"`  // url的字段名称，默认是url
 	UserAgent string `json:"userAgent"` // 模拟的客户端，默认是defaultUserAgent
 	TLSVerify bool   `json:"tlsVerify"` // 是否验证tls
@@ -39,8 +64,8 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("HttpRequest failed: %w", err))
 	}
 
-	if options.URLField == "" {
-		panic(fmt.Errorf("urlField can not be empty"))
+	if options.URLField == "" && options.Uri == "" {
+		panic(fmt.Errorf("urlField and uri value both empty"))
 	}
 	if options.UserAgent == "" {
 		options.UserAgent = defaultUserAgent
@@ -97,7 +122,13 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 				default:
 				}
 
-				u := gjson.Get(line, options.URLField).String()
+				var u string
+				if len(options.URLField) > 0 {
+					u = gjson.Get(line, options.URLField).String()
+				} else if len(options.Uri) > 0 {
+					u = ExpendVarWithJsonLine(p, options.Uri, line)
+				}
+
 				if len(u) == 0 {
 					// 没有字段，直接写回原始行
 					_, err = f.WriteString(line + "\n")
