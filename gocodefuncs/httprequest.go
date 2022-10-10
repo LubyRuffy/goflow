@@ -54,6 +54,7 @@ type HttpRequestParams struct {
 	TimeOut   int    `json:"timeOut"`   // 等待超时，单位为s，默认10s
 	Method    string `json:"method"`    // http请求method，默认是GET
 	Data      string `json:"data"`      // http请求的正文，默认为空
+	Header    map[string]string
 }
 
 // HttpRequest http请求提取数据
@@ -96,7 +97,7 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 
 	var lines int64
 	if lines, err = utils.FileLines(p.GetLastFile()); err != nil {
-		panic(fmt.Errorf("ParseURL error: %w", err))
+		panic(fmt.Errorf("HttpRequest error: %w", err))
 	}
 	if lines == 0 {
 		return &FuncResult{}
@@ -152,6 +153,13 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 					f.WriteString(line + "\n")
 					return
 				}
+
+				for k, v := range options.Header {
+					value := ExpendVarWithJsonLine(p, v, line)
+					req.Header.Set(k, value)
+				}
+				req.Header.Set("User-Agent", options.UserAgent)
+
 				resp, err = client.Do(req)
 				if err != nil {
 					p.Warnf("HttpRequest failed: %s, %s", url, err)

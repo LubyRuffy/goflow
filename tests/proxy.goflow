@@ -1,18 +1,18 @@
 package main
 
 func main() {
-
-	FetchFofa(GetRunner(), map[string]interface{}{
-		"actionId": "HO-DCP,+|$|,G.YTVhZg",
-		"query":    "banner=\"Authentication(0x00)\"",
-		"fields":   "host,ip,port,lastupdatetime",
-		"size":     10,
+	GenData(GetRunner(), map[string]interface{}{
+		"data": "{}",
 	})
 
-	AddField(GetRunner(), map[string]interface{}{
-		"actionId": "GOyKajBz{CzOuK,r83kB",
-		"name":     "url",
-		"value":    "socks5://${{host}}",
+	HttpRequest(GetRunner(), map[string]interface{}{
+		"method":  "GET",
+		"uri":     "https://127.0.0.1:8088/api/v1/check?url=socks5://124.124.109.243:7777",
+		"timeout": 10,
+		"header": map[string]string{
+			"X-Rproxy-Token": "a@a.com:1111",
+		},
+		"keepBody": true,
 	})
 
 }
