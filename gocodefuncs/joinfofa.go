@@ -64,12 +64,20 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 				panic(fmt.Errorf("HostSearch failed: %w", err))
 			}
 
-			for i := range res {
-				newLine := line
-				for j := range fields {
-					newLine, _ = sjson.Set(newLine, fields[j], res[i][j])
+			if len(res) > 0 {
+				for i := range res {
+					newLine := line
+					for j := range fields {
+						newLine, _ = sjson.Set(newLine, fields[j], res[i][j])
+					}
+					_, err = f.WriteString(newLine + "\n")
+					if err != nil {
+						panic(err)
+					}
 				}
-				_, err = f.WriteString(newLine + "\n")
+			} else {
+				// fofa没有数据，就把原始内容写入
+				_, err = f.WriteString(line + "\n")
 				if err != nil {
 					panic(err)
 				}

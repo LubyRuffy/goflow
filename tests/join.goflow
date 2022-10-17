@@ -1,0 +1,16 @@
+package main
+
+func main() {
+
+	GenData(GetRunner(), map[string]interface{}{
+		"data": `{"hostname": "2.2.2.2:80"}`,
+	})
+
+	JoinFofa(GetRunner(), map[string]interface{}{
+		"actionId": "pX7RzHAUDu4)gxN[GmD#",
+		"query":    "host=\"${{hostname}}\"",
+		"fields":   "domain,host,ip,port",
+		"size":     1,
+	})
+
+}

@@ -1,0 +1,20 @@
+package main
+
+func main() {
+
+	GenData(GetRunner(), map[string]interface{}{
+		"actionId": "2M=X;5`bT?68?om`^4ah",
+		"data":     "{\"cert\":\"Extended Key Usage:\\n  Server Auth\\n  Client Auth\\n\\nDNS Names:\\n  dcm.pogogt.de\\n  map.pogogt.de\\n  maps.pogogt.de\\n  proxy.pogogt.de\\n  rdm.pogogt.de\\n  stats.pogogt.de\\n  tiles.pogogt.de\\n  tools.pogogt.de\\n\\nCertificate Signature Algorithm: SHA256-RSA\\n\",\"domain\":\"pogogt.de\",\"host\":\"https://proxy.pogogt.de\",\"ip\":\"91.132.145.136\",\"port\":\"443\"}",
+	})
+
+	AddField(GetRunner(), map[string]interface{}{
+		"actionId": "m_Q2j8I`iK:m;4!Uh;ua",
+		"from": map[string]interface{}{
+			"method": "grep",
+			"field":  "cert",
+			"value":  "(?is)DNS Names:\\n  (.*?)\\n\\n",
+		},
+		"name": "hostnames",
+	})
+
+}
