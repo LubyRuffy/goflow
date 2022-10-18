@@ -414,6 +414,7 @@ func New() *PipeRunner {
 		{"TextClassify", gocodefuncs.TextClassify},
 		{"JoinFofa", gocodefuncs.JoinFofa},
 		{"Merge", gocodefuncs.Merge},
+		{"ExcelToJson", gocodefuncs.ExcelToJson},
 	}
 	r.registerFunctions(innerFuncs...)
 
