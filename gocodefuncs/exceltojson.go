@@ -1,16 +1,37 @@
 package gocodefuncs
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/mitchellh/mapstructure"
-	"github.com/tidwall/sjson"
 	"github.com/xuri/excelize/v2"
+	"io"
 	"os"
 )
 
 // ExcelToJsonParams 获取fofa的参数
 type ExcelToJsonParams struct {
+}
+
+func readExcel(f io.Reader) (interface{}, error) {
+	excelF, err := excelize.OpenReader(f)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]interface{})
+	for _, sheet := range excelF.GetSheetList() {
+		// Get all the rows in the Sheet1.
+		rows, err := excelF.GetRows(sheet)
+		if err != nil {
+			return nil, err
+		}
+
+		result[sheet] = rows
+	}
+
+	return result, nil
 }
 
 // ExcelToJson 从excel读取内容到json
@@ -25,34 +46,22 @@ func ExcelToJson(p Runner, params map[string]interface{}) *FuncResult {
 		panic("no file to read")
 	}
 
-	excelF, err := excelize.OpenFile(p.GetLastFile())
+	excelF, err := os.Open(p.GetLastFile())
 	if err != nil {
 		panic(fmt.Errorf("read excel failed: %w", err))
 	}
-	defer func() {
-		// Close the spreadsheet.
-		if err = excelF.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
+	defer excelF.Close()
+
+	records, err := readExcel(excelF)
+	if err != nil {
+		panic(fmt.Errorf("read excel failed: %w", err))
+	}
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-		line := ""
-		for _, sheet := range excelF.GetSheetList() {
-			// Get all the rows in the Sheet1.
-			rows, err := excelF.GetRows(sheet)
-			if err != nil {
-				return err
-			}
+		jsonStr, err := json.Marshal(records)
 
-			line, err = sjson.Set(line, sheet, rows)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = f.WriteString(line)
+		_, err = f.Write(jsonStr)
 		return err
 	})
 	if err != nil {
