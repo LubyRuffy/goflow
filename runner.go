@@ -415,6 +415,8 @@ func New() *PipeRunner {
 		{"JoinFofa", gocodefuncs.JoinFofa},
 		{"Merge", gocodefuncs.Merge},
 		{"ExcelToJson", gocodefuncs.ExcelToJson},
+		{"CSVToJson", gocodefuncs.CSVToJson},
+		{"ZipToJson", gocodefuncs.ZipToJson},
 	}
 	r.registerFunctions(innerFuncs...)
 
