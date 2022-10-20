@@ -417,6 +417,8 @@ func New() *PipeRunner {
 		{"ExcelToJson", gocodefuncs.ExcelToJson},
 		{"CSVToJson", gocodefuncs.CSVToJson},
 		{"ZipToJson", gocodefuncs.ZipToJson},
+		{"JqQuery", gocodefuncs.JqQuery},
+		{"Join", gocodefuncs.Join},
 	}
 	r.registerFunctions(innerFuncs...)
 

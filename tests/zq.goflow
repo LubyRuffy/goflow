@@ -1,0 +1,11 @@
+package main
+
+func main() {
+	GenData(GetRunner(), map[string]interface{}{
+		"data": "{\".a\":\"1\",\"b\":2,\"c\":3}\n{\".a\":\"4\",\"b\":5,\"c\":6}",
+	})
+
+	ZqQuery(GetRunner(), map[string]interface{}{
+		"query": `over this =>(key[0][0:1] != "." | collect(this) | yield collect | over this => ( collect(this) | yield collect | yield unflatten(this) ) )`,
+	})
+}

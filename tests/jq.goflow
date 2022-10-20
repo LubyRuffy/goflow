@@ -1,0 +1,11 @@
+package main
+
+func main() {
+	GenData(GetRunner(), map[string]interface{}{
+		"data": `{"a":[1,2], "b":[2,3]}`,
+	})
+
+	JqQuery(GetRunner(), map[string]interface{}{
+		"query": `.a-.b`,
+	})
+}
