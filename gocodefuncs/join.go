@@ -10,7 +10,8 @@ import (
 )
 
 type joinParams struct {
-	File string
+	File  string
+	Field string // 合并的字段，可以为空
 }
 
 // Join 合并文件字段，一个文件是{"a":1}，另一个文件时{"b":1},则合并所有的字段为{"a":1,"b":1}
@@ -64,14 +65,15 @@ func Join(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	fn, err := utils.WriteTempFile(".json", func(f *os.File) error {
-		line := ""
+		var err error
+		if options.Field == "" {
+			line := ""
+			line = joinFunc(f1Data, line)
+			line = joinFunc(f2Data, line)
+			_, err = f.WriteString(line)
+		}
 
-		line = joinFunc(f1Data, line)
-		line = joinFunc(f2Data, line)
-
-		_, err = f.WriteString(line)
-
-		return nil
+		return err
 	})
 
 	return &FuncResult{

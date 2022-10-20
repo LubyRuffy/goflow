@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func joinQuery(c1, c2 string, t *testing.T) string {
+func joinQuery(c1, c2 string, field string, t *testing.T) string {
 	fn1, err := utils.WriteTempFile(".json", func(f *os.File) error {
 		_, err := f.WriteString(c1)
 		return err
@@ -22,7 +22,8 @@ func joinQuery(c1, c2 string, t *testing.T) string {
 		T:        t,
 		lastFile: fn2,
 	}, map[string]interface{}{
-		"file": fn1,
+		"file":  fn1,
+		"field": field,
 	})
 	f, err := utils.ReadFirstLineOfFile(fr.OutFile)
 	assert.Nil(t, err)
@@ -31,12 +32,20 @@ func joinQuery(c1, c2 string, t *testing.T) string {
 
 func TestJoinQuery(t *testing.T) {
 
-	assert.Equal(t, joinQuery(`{"a":1}`, `{"b":2}`, t), `{"a":"1","b":"2"}`)
+	assert.Equal(t, joinQuery(`{"a":1}`, `{"b":2}`, "", t), `{"a":"1","b":"2"}`)
 	// 冲突
-	assert.Equal(t, joinQuery(`{"a":1}`, `{"a":2}`, t), `{"a":"2"}`)
+	assert.Equal(t, joinQuery(`{"a":1}`, `{"a":2}`, "", t), `{"a":"2"}`)
 	// 多行
 	assert.Equal(t, joinQuery(`{"a":1}
 {"c":3}`, `{"b":2}
-{"d":4}`, t), `{"a":"1","c":"3","b":"2","d":"4"}`)
+{"d":4}`, "", t), `{"a":"1","c":"3","b":"2","d":"4"}`)
 
 }
+
+//func TestJoinQueryWithField(t *testing.T) {
+//
+//	assert.Equal(t, joinQuery(`{"a":1}
+//{"a":2}`, `{"a":1,"b":2}`, "a", t), `{"a":"1","b":"2"}
+//{"a":2}`)
+//
+//}
