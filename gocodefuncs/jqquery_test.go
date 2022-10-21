@@ -41,4 +41,7 @@ func TestJqQuery(t *testing.T) {
 		`{"a":1,"b":2,"ip":"1.1.1.1"}
 {"c":3,"ip":"2.2.2.2"}
 `)
+
+	// 报错
+	//testJq(t, false, `{"a":[1,2], "b":[2,3]}`, ".a-.b aaaa", `[1]`)
 }

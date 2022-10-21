@@ -1,10 +1,11 @@
 package gocodefuncs
 
 import (
+	"errors"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/itchyny/gojq/cli"
 	"github.com/mitchellh/mapstructure"
-	"log"
+	"io/ioutil"
 	"os"
 )
 
@@ -39,6 +40,10 @@ func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
 	os.Args = append(args, "-c", options.Query)
 
 	outR, outW, _ := os.Pipe()
+	defer func() {
+		outR.Close()
+		outW.Close()
+	}()
 	origStdout := os.Stdout
 	defer func() {
 		os.Stdout = origStdout
@@ -51,55 +56,36 @@ func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
 	}()
 	os.Stdin = inFile
 
-	r, w, _ := os.Pipe()
-	os.Stderr = w
+	errR, errW, _ := os.Pipe()
+	defer func() {
+		errR.Close()
+		errW.Close()
+	}()
+	os.Stderr = errW
 
-	cli.Run()
-
-	ch := make(chan string, 1)
-	go func() {
-		defer func() {
-			ch <- fn
-		}()
+	status := cli.Run()
+	errW.Close()
+	outW.Close()
+	if status == 0 {
 		fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-			for {
-				var buf [1024]byte
-				n, err := outR.Read(buf[:])
-				if err != nil {
-					break
-				}
-				if n <= 0 {
-					break
-				}
-				_, err = f.Write(buf[:n])
-				if err != nil {
-					return err
-				}
-				if n < 1024 {
-					break
-				}
+			buf, err := ioutil.ReadAll(outR)
+			if err != nil {
+				panic(err)
+			}
+			_, err = f.Write(buf)
+			if err != nil {
+				return err
 			}
 			return nil
 		})
-	}()
-
-	go func() {
-		defer func() {
-			ch <- ""
-		}()
-		buf := make([]byte, 1024)
-		n, err := r.Read(buf)
+	} else {
+		buf, err := ioutil.ReadAll(errR)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		log.Println(string(buf[:n]))
-	}()
-
-	select {
-	case <-ch:
+		//log.Println(string(buf[:n]))
+		panic(errors.New(string(buf)))
 	}
-
-	close(ch)
 
 	return &FuncResult{
 		OutFile: fn,
