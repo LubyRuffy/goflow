@@ -25,16 +25,6 @@ func Join(p Runner, params map[string]interface{}) *FuncResult {
 		panic(err)
 	}
 
-	emptyfr := &FuncResult{
-		OutFile:   "",
-		Artifacts: nil,
-	}
-
-	// 没有文件
-	if p.GetLastFile() == "" {
-		return emptyfr
-	}
-
 	var f1Data, f2Data []byte
 	if options.File != "" {
 		f1Data, err = os.ReadFile(options.File)
@@ -50,27 +40,51 @@ func Join(p Runner, params map[string]interface{}) *FuncResult {
 		}
 	}
 
-	joinFunc := func(data []byte, line string) string {
-		if data != nil {
-			j := gjson.ParseBytes(data) // 可以处理多行，每行一个json没有问题
-			j.ForEach(func(key, value gjson.Result) bool {
-				line, err = sjson.Set(line, key.String(), value.String())
-				if err != nil {
-					panic(fmt.Errorf("join error: %w", err))
-				}
-				return true
-			})
-		}
-		return line
-	}
-
-	fn, err := utils.WriteTempFile(".json", func(f *os.File) error {
-		var err error
+	var fn string
+	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		if options.Field == "" {
+			joinFunc := func(data []byte, line string) string {
+				if data != nil {
+					j := gjson.ParseBytes(data) // 可以处理多行，每行一个json没有问题
+					j.ForEach(func(key, value gjson.Result) bool {
+						line, err = sjson.Set(line, key.String(), value.Value())
+						if err != nil {
+							panic(fmt.Errorf("join error: %w", err))
+						}
+						return true
+					})
+				}
+				return line
+			}
+
 			line := ""
 			line = joinFunc(f1Data, line)
 			line = joinFunc(f2Data, line)
 			_, err = f.WriteString(line)
+		} else {
+			tempFile, err := utils.WriteTempFile(".json", func(f *os.File) error {
+				_, err := f.Write(f1Data)
+				_, err = f.WriteString("\n")
+				_, err = f.Write(f2Data)
+				return err
+			})
+			if err != nil {
+				panic(err)
+			}
+
+			inFile, err := os.Open(tempFile)
+			if err != nil {
+				panic(err)
+			}
+			defer inFile.Close()
+
+			replaceField := `"` + options.Field + `"`
+			err = doJqQuery(inFile, jqQueryParams{
+				Query:  fmt.Sprintf(`group_by(.%s) | map({ %s: (.[0].%s) } + ([.[]|del(.%s)] | reduce .[] as $item({}; .+$item)) ) | .[]`, replaceField, replaceField, replaceField, replaceField),
+				Stream: true,
+			}, func(bytes []byte) {
+				_, err = f.Write(bytes)
+			})
 		}
 
 		return err

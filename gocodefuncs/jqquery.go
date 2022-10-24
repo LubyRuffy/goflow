@@ -14,21 +14,7 @@ type jqQueryParams struct {
 	Stream bool
 }
 
-// JqQuery jq command
-func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
-	var fn string
-	var err error
-	var options jqQueryParams
-	if err = mapstructure.Decode(params, &options); err != nil {
-		panic(err)
-	}
-
-	inFile, err := os.Open(p.GetLastFile())
-	if err != nil {
-		panic(err)
-	}
-	defer inFile.Close()
-
+func doJqQuery(inFile *os.File, options jqQueryParams, onData func([]byte)) error {
 	args := []string{os.Args[0]}
 	if options.Stream {
 		args = append(args, "-s")
@@ -67,17 +53,12 @@ func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
 	errW.Close()
 	outW.Close()
 	if status == 0 {
-		fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
-			buf, err := ioutil.ReadAll(outR)
-			if err != nil {
-				panic(err)
-			}
-			_, err = f.Write(buf)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		buf, err := ioutil.ReadAll(outR)
+		if err != nil {
+			panic(err)
+		}
+
+		onData(buf)
 	} else {
 		buf, err := ioutil.ReadAll(errR)
 		if err != nil {
@@ -85,6 +66,37 @@ func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
 		}
 		//log.Println(string(buf[:n]))
 		panic(errors.New(string(buf)))
+	}
+
+	return nil
+}
+
+// JqQuery jq command
+func JqQuery(p Runner, params map[string]interface{}) *FuncResult {
+	var fn string
+	var err error
+	var options jqQueryParams
+	if err = mapstructure.Decode(params, &options); err != nil {
+		panic(err)
+	}
+
+	inFile, err := os.Open(p.GetLastFile())
+	if err != nil {
+		panic(err)
+	}
+	defer inFile.Close()
+
+	err = doJqQuery(inFile, options, func(buf []byte) {
+		fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
+			_, err = f.Write(buf)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	})
+	if err != nil {
+		panic(err)
 	}
 
 	return &FuncResult{
