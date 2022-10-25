@@ -6,10 +6,13 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/sjson"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 )
 
 // CSVToJsonParams 获取fofa的参数
@@ -36,8 +39,20 @@ func readCsvFile(filePath string) ([][]string, error) {
 	return readCsv(f)
 }
 
+func tryUnicodeToUtf8(s string) string {
+	if !utf8.ValidString(s) {
+		if v, _, err := transform.String(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
+			s = v
+		} else if v, _, err = transform.String(unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
+			s = v
+		}
+	}
+	return s
+}
+
 // sjsonFileName 转换为 sjson可以处理的文件名
 func sjsonFileName(fn string) string {
+	fn = tryUnicodeToUtf8(fn)
 	filename := filepath.Base(fn)
 	filename = strings.ReplaceAll(filename, ".", "\\.") // 坑：path会自动处理.符号，需要进行转义，否则扩展名就变成了子obj
 	return filename

@@ -53,14 +53,15 @@ func ZipToJson(p Runner, params map[string]interface{}) *FuncResult {
 			fc, err := file.Open()
 			defer fc.Close()
 
-			records, err := loadFileToJson(file.Name, fc)
+			filename := tryUnicodeToUtf8(file.Name) // utf8
+			records, err := loadFileToJson(filename, fc)
 			if err != nil {
 				p.Warnf("read zip file failed: ", err)
 				continue
 				//panic(fmt.Errorf("read zip file failed: %w", err))
 			}
 
-			line, err = sjson.Set(line, sjsonFileName(file.Name), records)
+			line, err = sjson.Set(line, sjsonFileName(filename), records)
 			if err != nil {
 				return err
 			}

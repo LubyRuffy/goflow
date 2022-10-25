@@ -5,10 +5,13 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 	"io"
 	"os"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func writeSampleZipFile(t *testing.T) string {
@@ -33,6 +36,11 @@ func writeSampleZipFile(t *testing.T) string {
 		ef.Write(w2)
 		ef.Close()
 
+		// unicode
+		bs_UTF16LE, _, _ := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder(), []byte("測試.csv"))
+		w3, _ := writer.Create(string(bs_UTF16LE))
+		io.Copy(w3, strings.NewReader("a,b\n1,2"))
+
 		return writer.Close()
 	})
 	assert.Nil(t, err)
@@ -41,6 +49,9 @@ func writeSampleZipFile(t *testing.T) string {
 }
 
 func TestZipToJson(t *testing.T) {
+	bs_UTF16LE, _, _ := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder(), []byte("測試"))
+	assert.False(t, utf8.Valid(bs_UTF16LE))
+
 	filename := writeSampleZipFile(t)
 	fr := ZipToJson(&testRunner{
 		T:        t,
@@ -48,5 +59,6 @@ func TestZipToJson(t *testing.T) {
 	}, map[string]interface{}{})
 	d, err := os.ReadFile(fr.OutFile)
 	assert.Nil(t, err)
-	assert.Equal(t, string(d), `{"pom.csv":[["a","b"],["1","2"]],"Book1.xlsx":{"Sheet1":[["IP","域名"],["1.1.1.1","a.com"]],"Sheet2":[null,["Hello world."]]}}`)
+	assert.Equal(t, string(d), `{"pom.csv":[["a","b"],["1","2"]],"Book1.xlsx":{"Sheet1":[["IP","域名"],["1.1.1.1","a.com"]],"Sheet2":[null,["Hello world."]]},"測試.csv":[["a","b"],["1","2"]]}`)
+
 }
