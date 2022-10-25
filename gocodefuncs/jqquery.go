@@ -7,6 +7,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"os"
+	"sync"
 )
 
 type jqQueryParams struct {
@@ -49,23 +50,46 @@ func doJqQuery(inFile *os.File, options jqQueryParams, onData func([]byte)) erro
 	}()
 	os.Stderr = errW
 
-	status := cli.Run()
-	errW.Close()
-	outW.Close()
-	if status == 0 {
+	errCh := make(chan error, 2)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
 		buf, err := ioutil.ReadAll(outR)
 		if err != nil {
-			panic(err)
+			errCh <- err
+			return
 		}
 
 		onData(buf)
-	} else {
+	}()
+
+	go func() {
+		defer wg.Done()
 		buf, err := ioutil.ReadAll(errR)
 		if err != nil {
-			panic(err)
+			errCh <- err
+			return
 		}
-		//log.Println(string(buf[:n]))
-		panic(errors.New(string(buf)))
+
+		if len(buf) > 0 {
+			errCh <- errors.New(string(buf))
+		}
+	}()
+
+	status := cli.Run()
+	errW.Close()
+	outW.Close()
+
+	wg.Wait()
+	close(errCh)
+
+	if status == 0 {
+		//return nil
+	}
+
+	for e := range errCh {
+		panic(e)
 	}
 
 	return nil

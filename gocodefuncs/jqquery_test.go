@@ -44,4 +44,10 @@ func TestJqQuery(t *testing.T) {
 
 	// 报错
 	//testJq(t, false, `{"a":[1,2], "b":[2,3]}`, ".a-.b aaaa", `[1]`)
+
+	// 中文的问题
+	testJq(t, false, `{"测试":[1,2]}`, `{"测试"}`, `{"测试":[1,2]}
+`)
+	testJq(t, false, `{"测试":[1,2]}`, `."测试"`, `[1,2]
+`)
 }
