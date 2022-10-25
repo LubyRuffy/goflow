@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/mitchellh/mapstructure"
+	"github.com/saintfish/chardet"
 	"github.com/tidwall/sjson"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/encoding/traditionalchinese"
 	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
 	"io"
 	"os"
 	"path/filepath"
@@ -39,20 +41,59 @@ func readCsvFile(filePath string) ([][]string, error) {
 	return readCsv(f)
 }
 
-func tryUnicodeToUtf8(s string) string {
-	if !utf8.ValidString(s) {
-		if v, _, err := transform.String(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
-			s = v
-		} else if v, _, err = transform.String(unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
-			s = v
+func trFn(s string, cs string) string {
+	switch strings.ToLower(cs) {
+	case "gb-18030", "gbk":
+		if utf8Data, err := simplifiedchinese.GBK.NewDecoder().String(s); err == nil {
+			return string(utf8Data)
+		}
+	case "big5":
+		if utf8Data, err := traditionalchinese.Big5.NewDecoder().String(s); err == nil {
+			return string(utf8Data)
+		}
+	case "unicode.bigendian":
+		if utf8Data, err := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder().String(s); err == nil {
+			return string(utf8Data)
 		}
 	}
 	return s
 }
 
+func tryToUtf8(s string, charset string) string {
+	if !utf8.Valid([]byte(s)) {
+		if len(charset) > 0 {
+			return trFn(s, charset)
+		}
+
+		d := chardet.NewTextDetector()
+		all, err := d.DetectAll([]byte(s))
+		if err != nil {
+			return string(s)
+		}
+
+		return trFn(string(s), all[0].Charset)
+
+		//if isGBK(s) {
+		//	utf8Data, _ := simplifiedchinese.GBK.NewDecoder().Bytes(s)
+		//	return string(utf8Data)
+		//}
+		//
+		//if v, _, err := transform.Bytes(unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
+		//	if utf8.Valid(v) {
+		//		return string(v)
+		//	}
+		//} else if v, _, err := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder(), s); err == nil {
+		//	if utf8.Valid(v) {
+		//		return string(v)
+		//	}
+		//}
+	}
+	return string(s)
+}
+
 // sjsonFileName 转换为 sjson可以处理的文件名
 func sjsonFileName(fn string) string {
-	fn = tryUnicodeToUtf8(fn)
+	fn = tryToUtf8(fn, "")
 	filename := filepath.Base(fn)
 	filename = strings.ReplaceAll(filename, ".", "\\.") // 坑：path会自动处理.符号，需要进行转义，否则扩展名就变成了子obj
 	return filename

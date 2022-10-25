@@ -27,19 +27,8 @@ func loadFileToJson(name string, f io.Reader) (interface{}, error) {
 	return nil, nil
 }
 
-// ZipToJson 从csv读取内容到json
-func ZipToJson(p Runner, params map[string]interface{}) *FuncResult {
-	var err error
-	var options CSVToJsonParams
-	if err = mapstructure.Decode(params, &options); err != nil {
-		panic(fmt.Errorf("fetchFofa failed: %w", err))
-	}
-
-	if p.GetLastFile() == "" {
-		panic("no file to read")
-	}
-
-	zf, err := zip.OpenReader(p.GetLastFile())
+func doZipToJson(f string) string {
+	zf, err := zip.OpenReader(f)
 	if err != nil {
 		panic(fmt.Errorf("read zip file failed: %w", err))
 	}
@@ -53,12 +42,11 @@ func ZipToJson(p Runner, params map[string]interface{}) *FuncResult {
 			fc, err := file.Open()
 			defer fc.Close()
 
-			filename := tryUnicodeToUtf8(file.Name) // utf8
+			filename := tryToUtf8(file.Name, "gbk") // utf8
 			records, err := loadFileToJson(filename, fc)
 			if err != nil {
-				p.Warnf("read zip file failed: ", err)
+				//p.Warnf("read zip file failed: ", err)
 				continue
-				//panic(fmt.Errorf("read zip file failed: %w", err))
 			}
 
 			line, err = sjson.Set(line, sjsonFileName(filename), records)
@@ -71,10 +59,24 @@ func ZipToJson(p Runner, params map[string]interface{}) *FuncResult {
 		return err
 	})
 	if err != nil {
-		panic(fmt.Errorf("read csv error: %w", err))
+		panic(fmt.Errorf("read zip error: %w", err))
+	}
+	return fn
+}
+
+// ZipToJson 从csv读取内容到json
+func ZipToJson(p Runner, params map[string]interface{}) *FuncResult {
+	var err error
+	var options CSVToJsonParams
+	if err = mapstructure.Decode(params, &options); err != nil {
+		panic(fmt.Errorf("fetchFofa failed: %w", err))
+	}
+
+	if p.GetLastFile() == "" {
+		panic("no file to read")
 	}
 
 	return &FuncResult{
-		OutFile: fn,
+		OutFile: doZipToJson(p.GetLastFile()),
 	}
 }

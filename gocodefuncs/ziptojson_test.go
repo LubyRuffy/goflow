@@ -5,6 +5,7 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 	"io"
@@ -37,7 +38,7 @@ func writeSampleZipFile(t *testing.T) string {
 		ef.Close()
 
 		// unicode
-		bs_UTF16LE, _, _ := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder(), []byte("測試.csv"))
+		bs_UTF16LE, _, _ := transform.Bytes(simplifiedchinese.GBK.NewEncoder(), []byte("测试.csv"))
 		w3, _ := writer.Create(string(bs_UTF16LE))
 		io.Copy(w3, strings.NewReader("a,b\n1,2"))
 
@@ -49,8 +50,9 @@ func writeSampleZipFile(t *testing.T) string {
 }
 
 func TestZipToJson(t *testing.T) {
-	bs_UTF16LE, _, _ := transform.Bytes(unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder(), []byte("測試"))
+	bs_UTF16LE, _, _ := transform.Bytes(unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewEncoder(), []byte("測試"))
 	assert.False(t, utf8.Valid(bs_UTF16LE))
+	assert.Equal(t, "測試", tryToUtf8(string(bs_UTF16LE), "unicode.BigEndian"))
 
 	filename := writeSampleZipFile(t)
 	fr := ZipToJson(&testRunner{
@@ -59,6 +61,6 @@ func TestZipToJson(t *testing.T) {
 	}, map[string]interface{}{})
 	d, err := os.ReadFile(fr.OutFile)
 	assert.Nil(t, err)
-	assert.Equal(t, string(d), `{"pom.csv":[["a","b"],["1","2"]],"Book1.xlsx":{"Sheet1":[["IP","域名"],["1.1.1.1","a.com"]],"Sheet2":[null,["Hello world."]]},"測試.csv":[["a","b"],["1","2"]]}`)
+	assert.Equal(t, string(d), `{"pom.csv":[["a","b"],["1","2"]],"Book1.xlsx":{"Sheet1":[["IP","域名"],["1.1.1.1","a.com"]],"Sheet2":[null,["Hello world."]]},"测试.csv":[["a","b"],["1","2"]]}`)
 
 }

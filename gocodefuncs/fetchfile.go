@@ -122,7 +122,8 @@ func FetchFile(p Runner, params map[string]interface{}) *FuncResult {
 				panic(fmt.Errorf("FetchFile failed: %w", err))
 			}
 		}
-
+	case "zip", ".zip":
+		jsonFn = doZipToJson(rawFile)
 	default:
 		panic(fmt.Errorf("unknown format of:%s", options.Format))
 	}
