@@ -7,11 +7,13 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"os"
+	"strings"
 )
 
 type joinParams struct {
-	File  string
-	Field string // 合并的字段，可以为空
+	File      string
+	Field     string // 合并的字段，可以为空
+	DotAsPath bool   // 是否处理点符号作为路径，默认为false
 }
 
 // Join 合并文件字段，一个文件是{"a":1}，另一个文件时{"b":1},则合并所有的字段为{"a":1,"b":1}
@@ -47,7 +49,11 @@ func Join(p Runner, params map[string]interface{}) *FuncResult {
 				if data != nil {
 					j := gjson.ParseBytes(data) // 可以处理多行，每行一个json没有问题
 					j.ForEach(func(key, value gjson.Result) bool {
-						line, err = sjson.Set(line, key.String(), value.Value())
+						field := key.String()
+						if !options.DotAsPath {
+							field = strings.ReplaceAll(field, ".", "\\.")
+						}
+						line, err = sjson.Set(line, field, value.Value())
 						if err != nil {
 							panic(fmt.Errorf("join error: %w", err))
 						}
