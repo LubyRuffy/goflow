@@ -45,7 +45,7 @@ func Merge(p Runner, params map[string]interface{}) *FuncResult {
 	}
 
 	fn, err := utils.WriteTempFile(".json", func(f *os.File) error {
-		if f1Data != nil {
+		if f1Data != nil && len(f1Data) > 0 {
 			_, err = f.Write(f1Data)
 			if err != nil {
 				return err
