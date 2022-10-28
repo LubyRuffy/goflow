@@ -86,7 +86,7 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 
 	AddStaticResource(p, fn)
 	return &FuncResult{
-		OutFile: fn,
+		//OutFile: fn,
 		Artifacts: []*Artifact{
 			{
 				FilePath: fn,
