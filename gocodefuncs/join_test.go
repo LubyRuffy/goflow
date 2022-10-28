@@ -51,8 +51,7 @@ func TestJoinQuery(t *testing.T) {
 	assert.Equal(t, joinQuery(`{"ip":"1.1.1.1","a":1}
 {"ip":"1.1.1.1","b":2}
 {"ip":"2.2.2.2","c":3}`, ``, "ip", false, t), `{"a":1,"b":2,"ip":"1.1.1.1"}
-{"c":3,"ip":"2.2.2.2"}
-`)
+{"c":3,"ip":"2.2.2.2"}`)
 }
 
 //func TestJoinQueryWithField(t *testing.T) {
