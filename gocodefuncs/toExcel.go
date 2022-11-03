@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/gjson"
 	"github.com/xuri/excelize/v2"
+	"strings"
 )
 
 type toExcelParam struct {
@@ -39,6 +40,11 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 		v := gjson.ParseBytes(line)
 		colNo := 'A'
 		v.ForEach(func(key, value gjson.Result) bool {
+			// 合并的记录数据
+			if strings.HasPrefix(key.String(), "_merged_") {
+				return true
+			}
+
 			index := f.NewSheet(key.String())
 			f.SetActiveSheet(index)
 			for rows := range value.Array() {
@@ -47,6 +53,16 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 						value.Array()[rows].Array()[cols].Value())
 					if err != nil {
 						panic(fmt.Errorf("ToExcel SetCellValue failed: %w", err))
+					}
+				}
+			}
+
+			// 炒作单元格合并，格式 "_merged_Sheet2":[["A2:B3","dct11"]]}
+			if mergedCells := v.Get("_merged_" + key.String()); mergedCells.Exists() && mergedCells.IsArray() {
+				for _, c := range mergedCells.Array() {
+					err = f.MergeCell(key.String(), c.Array()[0].String(), c.Array()[1].String())
+					if err != nil {
+						panic(fmt.Errorf("MergeCell failed: %w", err))
 					}
 				}
 			}
