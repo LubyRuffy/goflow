@@ -28,14 +28,15 @@ var (
 )
 
 type ScreenshotParam struct {
-	URLField  string `json:"urlField"`            // url的字段名称，默认是url
-	Timeout   int    `json:"timeout"`             // 整个浏览器操作超时
-	Workers   int    `json:"workers"`             // 并发限制
-	SaveField string `json:"saveField"`           // 保存截图地址的字段
-	Sleep     int    `json:"sleep"`               // 加载完成后的等待事件，默认doc加载完成就截图
-	Proxy     string `json:"proxy,omitempty"`     // 用户自定义代理，为空时不配置
-	UserAgent string `json:"userAgent,omitempty"` // 用户自定义UA，为空时不配置
-	AddUrl    bool   `json:"addUrl"`              // 在截图中展示url地址
+	URLField           string `json:"urlField"`                     // url的字段名称，默认是url
+	Timeout            int    `json:"timeout"`                      // 整个浏览器操作超时
+	Workers            int    `json:"workers"`                      // 并发限制
+	SaveField          string `json:"saveField"`                    // 保存截图地址的字段
+	Sleep              int    `json:"sleep"`                        // 加载完成后的等待事件，默认doc加载完成就截图
+	Proxy              string `json:"proxy,omitempty"`              // 用户自定义代理，为空时不配置
+	UserAgent          string `json:"userAgent,omitempty"`          // 用户自定义UA，为空时不配置
+	AddUrl             bool   `json:"addUrl"`                       // 在截图中展示url地址
+	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
 }
 
 type chromeActionsInput struct {
@@ -132,7 +133,7 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 	return err
 }
 
-func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, error) {
+func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam) (string, int, error) {
 	p.Debugf("screenshot url: %s", u)
 
 	var buf []byte
@@ -151,6 +152,7 @@ func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, e
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
 
+	// 在截图中添加当前请求地址
 	if options.AddUrl == true {
 		tmp, err := AddUrlToTitle(u, buf)
 		if err != nil {
@@ -161,10 +163,19 @@ func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, e
 	}
 
 	var fn string
-	fn, err = utils.WriteTempFile(".png", func(f *os.File) error {
-		_, err = f.Write(buf)
-		return err
-	})
+	if filename != "" {
+		// 如果指定文件名，则进行指定命名
+		fn, err = utils.WriteTempFileWithName(filename+".png", func(f *os.File) error {
+			_, err = f.Write(buf)
+			return err
+		})
+	} else {
+		// 未找到命名字段，自动命名
+		fn, err = utils.WriteTempFile(".png", func(f *os.File) error {
+			_, err = f.Write(buf)
+			return err
+		})
+	}
 
 	return fn, len(buf), err
 }
@@ -239,10 +250,15 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 					}
 				}
 
+				var filename string
+				if options.FilenameDependency != "" {
+					filename = formatFilename(gjson.Get(line, options.FilenameDependency).String())
+				}
+
 				var size int
 				var sfn string
 				url := utils.FixURL(u)
-				sfn, size, err = screenshotURL(p, url, &options)
+				sfn, size, err = screenshotURL(p, url, filename, &options)
 				if err != nil {
 					p.Warnf("screenshotURL failed: %s, %s", url, err)
 					f.WriteString(line + "\n")
@@ -449,4 +465,12 @@ func fullScreenshot(urlstr string, quality int, res *[]byte) chromedp.Tasks {
 		chromedp.Navigate(urlstr),
 		chromedp.FullScreenshot(res, quality),
 	}
+}
+
+// formatFilename 格式化为正常文件名
+func formatFilename(filename string) string {
+	filename = strings.ReplaceAll(filename, "://", "_")
+	filename = strings.ReplaceAll(filename, "/", "_")
+	filename = strings.ReplaceAll(filename, ".", "_")
+	return filename
 }

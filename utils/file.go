@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -114,6 +115,31 @@ func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err er
 		ext = "*" + ext
 	}
 	f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+ext)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	fn = f.Name()
+
+	if writeF != nil {
+		err = writeF(f)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+// WriteTempFileWithName 写入临时文件，指定生成的文件名
+// 如果writeF是nil，就只返回生成的一个临时空文件路径
+// 返回文件名和错误
+func WriteTempFileWithName(filename string, writeF func(f *os.File) error) (fn string, err error) {
+	var f *os.File
+	if len(filename) <= 0 {
+		return "", fmt.Errorf("empty filename")
+	}
+	f, err = os.CreateTemp(os.TempDir(), "*_"+filename)
 	if err != nil {
 		return
 	}
