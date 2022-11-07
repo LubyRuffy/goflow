@@ -14,6 +14,7 @@ type Runner interface {
 	Warnf(format string, args ...interface{})                    // 打印警告信息
 	Logf(level logrus.Level, format string, args ...interface{}) // 打印日志信息
 	SetProgress(p float64)                                       // 设置进度
+	FormatResourceFieldInJson(filename string) (string, error)   // 将资源文件对应字段中的内容从绝对路径改为文件名
 }
 
 // Artifact 过程中生成的文件

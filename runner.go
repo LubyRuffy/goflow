@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"sync"
@@ -254,9 +256,6 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 	var files []string
 	var err error
 
-	// 获取最后执行的文件结果
-	files = append(files, p.LastFile)
-
 	// 获取需要加载文件的字段
 	if flds, ok := p.GetObject(utils.ResourceFieldsObjectName); ok {
 		// 获取文件资源
@@ -287,6 +286,13 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 		}
 	}
 
+	// 格式化最终输出的json
+	fn, err := p.FormatResourceFieldInJson(p.LastFile)
+	if err != nil {
+		return nil, err
+	}
+	files = append(files, fn)
+
 	// 文件打包
 	if len(files) > 0 {
 		tarGzData, err := utils.TarGzFiles(files)
@@ -297,6 +303,25 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 	}
 
 	return nil, nil
+}
+
+//FormatResourceFieldInJson 将资源文件对应字段中的内容从绝对路径改为文件名
+func (p *PipeRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
+	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
+		err = utils.EachLine(filename, func(line string) error {
+			// 逐行进行文件名替换
+			if flds, ok := p.GetObject(utils.ResourceFieldsObjectName); ok {
+				for _, fld := range flds.([]string) {
+					file := gjson.Get(line, fld).String()
+					line, _ = sjson.Set(line, fld, filepath.Base(file))
+				}
+			}
+			f.WriteString(line + "\n")
+			return nil
+		})
+		return err
+	})
+	return
 }
 
 // TarGzAll 打包所有文件
