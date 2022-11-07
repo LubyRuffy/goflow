@@ -35,7 +35,7 @@ type ScreenshotParam struct {
 	Sleep     int    `json:"sleep"`               // 加载完成后的等待事件，默认doc加载完成就截图
 	Proxy     string `json:"proxy,omitempty"`     // 用户自定义代理，为空时不配置
 	UserAgent string `json:"userAgent,omitempty"` // 用户自定义UA，为空时不配置
-	AddTitle  bool   `json:"addTitle"`            // 在截图中展示url地址
+	AddUrl    bool   `json:"addUrl"`              // 在截图中展示url地址
 }
 
 type chromeActionsInput struct {
@@ -151,7 +151,7 @@ func screenshotURL(p Runner, u string, options *ScreenshotParam) (string, int, e
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
 
-	if options.AddTitle == true {
+	if options.AddUrl == true {
 		tmp, err := AddUrlToTitle(u, buf)
 		if err != nil {
 			log.Printf("add title failed for(%s): %s", u, err.Error())
