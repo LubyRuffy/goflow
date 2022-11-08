@@ -6,11 +6,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -106,15 +106,15 @@ func LoadFirstExistsFile(paths []string) string {
 	return ""
 }
 
-// WriteTempFile 写入临时文件
+// writeTempFile 向Temp文件夹写入文件
 // 如果writeF是nil，就只返回生成的一个临时空文件路径
 // 返回文件名和错误
-func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err error) {
+func writeTempFile(nameTemp string, writeF func(f *os.File) error) (fn string, err error) {
 	var f *os.File
-	if len(ext) > 0 {
-		ext = "*" + ext
+	if len(nameTemp) > 0 && !strings.Contains("*", nameTemp) {
+		nameTemp = "*" + nameTemp
 	}
-	f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+ext)
+	f, err = os.CreateTemp(os.TempDir(), nameTemp)
 	if err != nil {
 		return
 	}
@@ -131,29 +131,18 @@ func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err er
 	return
 }
 
+// WriteTempFile 写入临时文件
+// 如果writeF是nil，就只返回生成的一个临时空文件路径
+// 返回文件名和错误
+func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err error) {
+	return writeTempFile(defaultPipeTmpFilePrefix+ext, writeF)
+}
+
 // WriteTempFileWithName 写入临时文件，指定生成的文件名
 // 如果writeF是nil，就只返回生成的一个临时空文件路径
 // 返回文件名和错误
 func WriteTempFileWithName(filename string, writeF func(f *os.File) error) (fn string, err error) {
-	var f *os.File
-	if len(filename) <= 0 {
-		return "", fmt.Errorf("empty filename")
-	}
-	f, err = os.CreateTemp(os.TempDir(), "*_"+filename)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-
-	fn = f.Name()
-
-	if writeF != nil {
-		err = writeF(f)
-		if err != nil {
-			return
-		}
-	}
-	return
+	return writeTempFile("*_"+filename, writeF)
 }
 
 // FileLines 统计文件行

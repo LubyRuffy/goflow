@@ -131,7 +131,7 @@ func TestEachLineWithContext(t *testing.T) {
 	assert.Equal(t, 1, i)
 }
 
-func TestWriteTempFileWithName(t *testing.T) {
+func Test_writeTempFile(t *testing.T) {
 	type args struct {
 		filename string
 	}
@@ -149,7 +149,7 @@ func TestWriteTempFileWithName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := []byte("write temporary file sample")
-			fn, err := WriteTempFileWithName(tt.args.filename, func(f *os.File) error {
+			fn, err := writeTempFile(tt.args.filename, func(f *os.File) error {
 				_, err := f.Write(buf)
 				return err
 			})
