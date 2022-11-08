@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -866,4 +867,32 @@ HttpRequest(GetRunner(), map[string]interface{}{
 "timeOut": 10,
 })`)
 	assert.Error(t, err)
+}
+
+func TestPipeRunner_FormatResourceFieldInJson(t *testing.T) {
+	p := New()
+	_, err := p.Run(context.Background(), `GenData(GetRunner(), map[string]interface{}{
+		"actionId": "4jF}oq]F$;]Ioa_8D8hY",
+		"data": "{\"a\":\"https://fofa.info\"}",
+	})
+
+	Screenshot(GetRunner(), map[string]interface{}{
+		"actionId": "g{SNACsfHFAmyeQMTeC",
+		"workers": 1,
+		"timeout": 30,
+		"urlField": "a",
+		"saveField": "screenshot_filepath",
+		"addUrl": true,
+		"filenameDependency": "a",
+	})
+	
+	ToExcel(GetRunner(), map[string]interface{}{
+		"actionId": "a=W17)!5I!E%c7gYFhI~",
+		"rawFormat": false,
+	})
+`)
+	assert.Nil(t, err)
+	fn, err := p.FormatResourceFieldInJson(p.GetLastFile())
+	assert.Nil(t, err)
+	log.Printf("TestPipeRunner_FormatResourceFieldInJson output at: %s", fn)
 }

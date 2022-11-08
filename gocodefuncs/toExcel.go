@@ -31,9 +31,15 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 	f := excelize.NewFile()
 	defer f.Close()
 
+	// 格式化资源字段
+	formattedFile, err := p.FormatResourceFieldInJson(p.GetLastFile())
+	if err != nil {
+		panic(fmt.Errorf("format resource field in json failed: %w", err))
+	}
+
 	if options.RawFormat {
 		var line []byte
-		line, err = utils.ReadFirstLineOfFile(p.GetLastFile())
+		line, err = utils.ReadFirstLineOfFile(formattedFile)
 		if err != nil {
 			panic(fmt.Errorf("ToExcel SetCellValue failed: %w", err))
 		}
@@ -70,7 +76,7 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 		})
 	} else {
 		lineNo := 2
-		err = utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
+		err = utils.EachLineWithContext(p.GetContext(), formattedFile, func(line string) error {
 			v := gjson.Parse(line)
 			colNo := 'A'
 			v.ForEach(func(key, value gjson.Result) bool {

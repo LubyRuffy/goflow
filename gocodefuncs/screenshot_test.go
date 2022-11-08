@@ -1,8 +1,12 @@
 package gocodefuncs
 
 import (
+	"context"
+	"github.com/LubyRuffy/goflow/utils"
 	"github.com/chromedp/chromedp"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -87,6 +91,45 @@ func TestAddObjectSlice(t *testing.T) {
 			object, ok := p.GetObject(tt.args.objectName)
 			assert.True(t, ok)
 			assert.Equal(t, tt.args.ele, object.([]string)[0])
+		})
+	}
+}
+
+func TestAddUrlToTitle(t *testing.T) {
+	type args struct {
+		url string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "测试截图添加url地址",
+			args: args{url: `https://fofa.info`},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := chromedp.NewContext(
+				context.Background(),
+			)
+			defer cancel()
+
+			var buf []byte
+			err := chromedp.Run(ctx, fullScreenshot(tt.args.url, 90, &buf))
+			assert.Nil(t, err)
+
+			gotResult, err := AddUrlToTitle(tt.args.url, buf)
+			assert.Nil(t, err)
+			assert.Greater(t, len(gotResult), len(buf))
+
+			// 效果展示
+			var fn string
+			fn, err = utils.WriteTempFile(".png", func(f *os.File) error {
+				_, err = f.Write(gotResult)
+				return err
+			})
+			log.Printf("save modified pic into: %s", fn)
 		})
 	}
 }
