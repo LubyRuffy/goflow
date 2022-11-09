@@ -10,7 +10,8 @@ import (
 )
 
 type toExcelParam struct {
-	RawFormat bool // 是否原始格式 {"Sheet1":[[]], "Sheet2":[[]]}
+	RawFormat bool `mapstructure:"rawFormat"` // 是否原始格式 {"Sheet1":[[]], "Sheet2":[[]]}
+	InsertPic bool `mapstructure:"insertPic"` // 是否将截图字段自动替换为图片, rawFormat不受该参数影响
 }
 
 // ToExcel 写excel文件
@@ -31,10 +32,15 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 	f := excelize.NewFile()
 	defer f.Close()
 
-	// 格式化资源字段
-	formattedFile, err := p.FormatResourceFieldInJson(p.GetLastFile())
-	if err != nil {
-		panic(fmt.Errorf("format resource field in json failed: %w", err))
+	var formattedFile string
+	if options.InsertPic {
+		formattedFile = p.GetLastFile()
+	} else {
+		// 格式化资源字段
+		formattedFile, err = p.FormatResourceFieldInJson(p.GetLastFile())
+		if err != nil {
+			panic(fmt.Errorf("format resource field in json failed: %w", err))
+		}
 	}
 
 	if options.RawFormat {
@@ -83,6 +89,24 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 				// 设置第一行
 				if lineNo == 2 {
 					err = f.SetCellValue("Sheet1", fmt.Sprintf("%c%d", colNo, lineNo-1), key.Value())
+				}
+
+				// 设置图片
+				if flds, ok := p.GetObject(utils.ResourceFieldsObjectName); ok && options.InsertPic {
+					// 逐行进行文件名替换
+					var file string
+					for _, fld := range flds.([]string) {
+						if fld == key.String() {
+							file = gjson.Get(line, key.String()).String()
+							err = f.AddPicture("Sheet1", fmt.Sprintf("%c%d", colNo, lineNo), file,
+								`{"autofit": true}`)
+							if err != nil {
+								return false
+							}
+							// 完成，这个框里不写文字了
+							return true
+						}
+					}
 				}
 
 				// 写值
