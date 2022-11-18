@@ -144,7 +144,7 @@ func (p *PipeRunner) AddWorkflow(pt *PipeTask) {
 	if pt.Result != nil && len(pt.Result.OutFile) > 0 {
 		p.LastFile = pt.Result.OutFile
 
-		logrus.Debug(pt.Name+" write to file: ", pt.Result.OutFile)
+		logrus.Info(pt.Name+" write to file: ", pt.Result.OutFile)
 
 		// 取字段列表
 		pt.Fields = utils.JSONLineFields(pt.Result.OutFile)
@@ -305,7 +305,7 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 	return nil, nil
 }
 
-//FormatResourceFieldInJson 将资源文件对应字段中的内容从绝对路径改为文件名
+// FormatResourceFieldInJson 将资源文件对应字段中的内容从绝对路径改为文件名
 func (p *PipeRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		err = utils.EachLine(filename, func(line string) error {
