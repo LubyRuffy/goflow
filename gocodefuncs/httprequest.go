@@ -11,8 +11,8 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"sync/atomic"
 	"time"
@@ -54,6 +54,7 @@ type HttpRequestParams struct {
 	TimeOut   int    `json:"timeOut"`   // 等待超时，单位为s，默认10s
 	Method    string `json:"method"`    // http请求method，默认是GET
 	Data      string `json:"data"`      // http请求的正文，默认为空
+	Proxy     string `json:"proxy"`     // 代理请求
 	Header    map[string]string
 }
 
@@ -87,6 +88,14 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 	// 配置是否验证tls
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: !options.TLSVerify},
+	}
+	if len(options.Proxy) > 0 {
+		proxyU, err := url.Parse(options.Proxy)
+		if err != nil {
+			panic(fmt.Errorf("parse proxy url failed: %w", err))
+		}
+		tr.Proxy = http.ProxyURL(proxyU)
+
 	}
 	// 设置超时
 	timeout := time.Second * time.Duration(options.TimeOut)
@@ -177,7 +186,7 @@ func HttpRequest(p Runner, params map[string]interface{}) *FuncResult {
 
 					// 不管是否成功都先把数据写入
 					var body []byte
-					body, err = ioutil.ReadAll(resp.Body)
+					body, err = io.ReadAll(resp.Body)
 					if options.MaxSize > 0 && len(body) > options.MaxSize {
 						body = body[:options.MaxSize]
 					}

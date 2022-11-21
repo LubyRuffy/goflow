@@ -41,6 +41,9 @@ func (t *testRunner) SetProgress(v float64) {
 func (t *testRunner) GetContext() context.Context {
 	return context.Background()
 }
+func (t *testRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
+	return "", nil
+}
 
 func newTestRunner(t *testing.T, jsonData string) *testRunner {
 	fn, err := utils.WriteTempFile(".json", func(f *os.File) error {
