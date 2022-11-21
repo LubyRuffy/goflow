@@ -108,12 +108,15 @@ func LoadFirstExistsFile(paths []string) string {
 // writeTempFile 向Temp文件夹写入文件
 // 如果writeF是nil，就只返回生成的一个临时空文件路径
 // 返回文件名和错误
-func writeTempFile(ext string, writeF func(f *os.File) error) (fn string, err error) {
+func writeTempFile(filename string, writeF func(f *os.File) error) (fn string, err error) {
 	var f *os.File
-	if len(ext) > 0 && filepath.Ext(ext) == ext {
-		ext = "*" + ext
+	if len(filename) > 0 && filepath.Ext(filename) == filename {
+		filename = "*" + filename
+		f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+filename)
+	} else {
+		f, err = os.CreateTemp(os.TempDir(), filename)
 	}
-	f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+ext)
+
 	if err != nil {
 		return
 	}

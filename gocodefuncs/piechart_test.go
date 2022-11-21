@@ -16,10 +16,6 @@ type testRunner struct {
 	*testing.T
 }
 
-func (t *testRunner) FormatResourceFieldInJson(filename string) (string, error) {
-	return filename, nil
-}
-
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
 	return t.objects.Load(name)
 }
