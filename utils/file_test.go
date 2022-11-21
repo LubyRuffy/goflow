@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"testing"
 	"time"
@@ -149,12 +150,30 @@ func Test_writeTempFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := []byte("write temporary file sample")
-			fn, err := writeTempFile(tt.args.filename, func(f *os.File) error {
+
+			// 不根据文件名写入文件
+			fn, err := WriteTempFile(filepath.Ext(tt.args.filename), func(f *os.File) error {
 				_, err := f.Write(buf)
 				return err
 			})
 			assert.Nil(t, err)
 			assert.FileExists(t, fn)
+			fn = filepath.Base(fn)
+			match, err := regexp.Match(fmt.Sprintf(`%s\d+.json`, defaultPipeTmpFilePrefix), []byte(fn))
+			assert.Nil(t, err)
+			assert.Truef(t, match, fmt.Sprintf("unmatched filename: %s", fn))
+
+			// 根据文件名写入文件
+			fn, err = WriteTempFileWithName(tt.args.filename, func(f *os.File) error {
+				_, err = f.Write(buf)
+				return err
+			})
+			assert.Nil(t, err)
+			assert.FileExists(t, fn)
+			fn = filepath.Base(fn)
+			match, err = regexp.Match(`\d+_test.json`, []byte(fn))
+			assert.Nil(t, err)
+			assert.Truef(t, match, fmt.Sprintf("unmatched filename: %s", fn))
 		})
 	}
 }
