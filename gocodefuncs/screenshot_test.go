@@ -97,7 +97,8 @@ func TestAddObjectSlice(t *testing.T) {
 
 func TestAddUrlToTitle(t *testing.T) {
 	type args struct {
-		url string
+		url          string
+		hasTimeStamp bool
 	}
 	tests := []struct {
 		name string
@@ -105,7 +106,11 @@ func TestAddUrlToTitle(t *testing.T) {
 	}{
 		{
 			name: "测试截图添加url地址",
-			args: args{url: `https://fofa.info`},
+			args: args{url: `https://fofa.info`, hasTimeStamp: false},
+		},
+		{
+			name: "测试截图添加url地址 & 时间戳",
+			args: args{url: `https://fofa.info`, hasTimeStamp: true},
 		},
 	}
 	for _, tt := range tests {
@@ -119,7 +124,7 @@ func TestAddUrlToTitle(t *testing.T) {
 			err := chromedp.Run(ctx, fullScreenshot(tt.args.url, 90, &buf))
 			assert.Nil(t, err)
 
-			gotResult, err := AddUrlToTitle(tt.args.url, buf)
+			gotResult, err := AddUrlToTitle(tt.args.url, buf, tt.args.hasTimeStamp)
 			assert.Nil(t, err)
 			assert.Greater(t, len(gotResult), len(buf))
 

@@ -36,6 +36,7 @@ type ScreenshotParam struct {
 	Proxy              string `json:"proxy,omitempty"`              // 用户自定义代理，为空时不配置
 	UserAgent          string `json:"userAgent,omitempty"`          // 用户自定义UA，为空时不配置
 	AddUrl             bool   `json:"addUrl"`                       // 在截图中展示url地址
+	AddTimeStamp       bool   `json:"AddTimeStamp"`                 // 在截图中展示时间戳
 	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
 }
 
@@ -102,14 +103,14 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 					}
 				}
 				// 20211219发现如果存在JS前端框架 (如vue, react...) 执行等待读取.
+				// 这里已经有数据了，没有等到渲染结果也可以进行截图，有的可能没有渲染，就是原始结果，所以直接打日志，不用报错
 				html2Low := strings.ToLower(htmlDom)
 				if strings.Contains(html2Low, "javascript") || strings.Contains(html2Low, "</script>'") {
-					err = chromedp.WaitVisible("div", chromedp.ByQuery).Do(cxt)
-					if err := chromedp.OuterHTML("html", &htmlDom).Do(cxt); err != nil {
-						log.Println("[DEBUG] fetch html failed:", err)
+					err1 := chromedp.WaitVisible("div", chromedp.ByQuery).Do(cxt)
+					if err1 = chromedp.OuterHTML("html", &htmlDom).Do(cxt); err1 != nil {
+						log.Println("[DEBUG] fetch html failed:", err1)
 					}
 				}
-
 				eCh <- err
 			}(ch)
 
@@ -154,7 +155,7 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 
 	// 在截图中添加当前请求地址
 	if options.AddUrl == true {
-		tmp, err := AddUrlToTitle(u, buf)
+		tmp, err := AddUrlToTitle(u, buf, options.AddTimeStamp)
 		if err != nil {
 			log.Printf("add title failed for(%s): %s", u, err.Error())
 		} else {
@@ -355,7 +356,7 @@ func AddObjectSlice(p Runner, objectName, ele string) {
 }
 
 //AddUrlToTitle 通过html转换对整个screenshot截图结果进行处理，添加标题栏并在其中写入访问的url地址
-func AddUrlToTitle(url string, picBuf []byte) (result []byte, err error) {
+func AddUrlToTitle(url string, picBuf []byte, hasTimeStamp bool) (result []byte, err error) {
 	htmlPart1 := `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -416,9 +417,14 @@ func AddUrlToTitle(url string, picBuf []byte) (result []byte, err error) {
                 <div class="btn red"></div>
                 <div class="btn yellow"></div>
                 <div class="btn green"></div>
-                <div class="btn" style="margin-top: -7px;margin-left: 1%;">
+`
+	htmlTitle := `<div class="btn" style="margin-top: -7px;margin-left: 1%;">
                     <b style="color:#48576a">`
-	htmlPart2 := `</b>
+	htmlTimeStamp := `</b>
+                </div>
+                <div class="btn" style="margin-top: 2px;margin-right: 18%;float: right;">
+                    <b style="color:#48576a">`
+	htmlBase64 := `</b>
                 </div>
             </div>
             <div style="max-height:800px;overflow:hidden;">
@@ -434,8 +440,17 @@ func AddUrlToTitle(url string, picBuf []byte) (result []byte, err error) {
 	encodedBase64 := base64.StdEncoding.EncodeToString(picBuf)
 
 	// 合成新的html文件
-	html := append([]byte(htmlPart1), []byte(url)...)
-	html = append(append(append(html, []byte(htmlPart2)...), []byte(encodedBase64)...), []byte(htmlPart3)...)
+	html := append(append([]byte(htmlPart1), []byte(htmlTitle)...), []byte(url)...)
+
+	// 添加时间戳
+	if hasTimeStamp {
+		curTime := time.Now().Format(`2006-01-02 15:04:05`)
+		html = append(html, []byte(htmlTimeStamp)...)
+		html = append(html, []byte(curTime)...)
+	}
+
+	// 添加
+	html = append(append(append(html, []byte(htmlBase64)...), []byte(encodedBase64)...), []byte(htmlPart3)...)
 	var fn string
 	fn, err = utils.WriteTempFile(".html", func(f *os.File) error {
 		_, err = f.Write(html)
