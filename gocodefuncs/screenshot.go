@@ -65,6 +65,8 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 		chromedp.Flag("disable-setuid-sandbox", true),
 		chromedp.Flag("disable-web-security", true),
 		chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("ppapi-in-process", true),
+		chromedp.Flag("lang", "zh"),
 		chromedp.IgnoreCertErrors,
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
@@ -90,6 +92,7 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 		chromedp.ActionFunc(func(cxt context.Context) error {
 			// 等待完成，要么是body出来了，要么是资源加载完成
 			ch := make(chan error, 1)
+			time.Sleep(time.Nanosecond)
 			go func(eCh chan error) {
 				err := chromedp.Navigate(in.URL).Do(cxt)
 				if err != nil {
@@ -148,7 +151,7 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 		URL:       u,
 		Proxy:     options.Proxy,
 		UserAgent: options.UserAgent,
-	}, p.Debugf, options.Timeout, actions...)
+	}, p.Warnf, options.Timeout, actions...)
 	if err != nil {
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
