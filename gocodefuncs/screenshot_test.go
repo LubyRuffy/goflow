@@ -43,7 +43,7 @@ func Test_chromeActions(t *testing.T) {
 				in: chromeActionsInput{
 					URL:       "http://www.baidu.com",
 					Proxy:     "socks5://127.0.0.1:7890",
-					UserAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36",
+					UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Edg/91.0.864.59",
 				},
 				logf:    func(s string, i ...interface{}) {},
 				timeout: 10,

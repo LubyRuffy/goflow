@@ -3,6 +3,7 @@ package gocodefuncs
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"path/filepath"
@@ -105,14 +106,24 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 						log.Println("[DEBUG] fetch html failed:", err)
 					}
 				}
+				eCh <- err
+				tmp := cxt
 				// 20211219发现如果存在JS前端框架 (如vue, react...) 执行等待读取.
 				// 这里已经有数据了，没有等到渲染结果也可以进行截图，有的可能没有渲染，就是原始结果，所以直接打日志，不用报错
 				html2Low := strings.ToLower(htmlDom)
 				if strings.Contains(html2Low, "javascript") || strings.Contains(html2Low, "</script>'") {
-					err1 := chromedp.WaitVisible("div", chromedp.ByQuery).Do(cxt)
-					if err1 = chromedp.OuterHTML("html", &htmlDom).Do(cxt); err1 != nil {
-						log.Println("[DEBUG] fetch html failed:", err1)
+					err1 := chromedp.WaitVisible("div", chromedp.ByQuery).Do(tmp)
+					if err1 != nil {
+						log.Println("[DEBUG] wait visible html failed:", err1)
+						eCh <- err
+						return
 					}
+					if err1 = chromedp.OuterHTML("html", &htmlDom).Do(tmp); err1 != nil {
+						log.Println("[DEBUG] fetch html failed:", err1)
+						eCh <- err
+						return
+					}
+					cxt = tmp
 				}
 				eCh <- err
 			}(ch)
@@ -132,7 +143,11 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 	realActions = append(realActions, actions...)
 
 	// run task list
+	start := time.Now().Unix()
+	logf("[%s] start running chromedp for [%s]", time.Unix(start, 0).String(), in.URL)
 	err = chromedp.Run(ctx, realActions...)
+	end := time.Now().Unix()
+	logf("[%s] chromedp ends for [%s], cost=%d sec", time.Unix(end, 0).String(), in.URL, end-start)
 
 	return err
 }
@@ -155,6 +170,8 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 	if err != nil {
 		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
+
+	p.Logf(logrus.InfoLevel, "finished screenshot for %s", u)
 
 	// 在截图中添加当前请求地址
 	if options.AddUrl == true {
