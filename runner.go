@@ -414,6 +414,10 @@ func New() *PipeRunner {
 	if err != nil {
 		panic(err)
 	}
+	err = r.gf.Register("ZqValue", gocodefuncs.ZqValue) // 取zq计算后的值
+	if err != nil {
+		panic(err)
+	}
 
 	innerFuncs := [][]interface{}{
 		{"RemoveField", gocodefuncs.RemoveField},
