@@ -43,7 +43,7 @@ func Test_chromeActions(t *testing.T) {
 				in: chromeActionsInput{
 					URL:       "http://www.baidu.com",
 					Proxy:     "socks5://127.0.0.1:7890",
-					UserAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36",
+					UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Edg/91.0.864.59",
 				},
 				logf:    func(s string, i ...interface{}) {},
 				timeout: 10,
@@ -97,7 +97,8 @@ func TestAddObjectSlice(t *testing.T) {
 
 func TestAddUrlToTitle(t *testing.T) {
 	type args struct {
-		url string
+		url          string
+		hasTimeStamp bool
 	}
 	tests := []struct {
 		name string
@@ -105,7 +106,11 @@ func TestAddUrlToTitle(t *testing.T) {
 	}{
 		{
 			name: "测试截图添加url地址",
-			args: args{url: `https://fofa.info`},
+			args: args{url: `https://fofa.info`, hasTimeStamp: false},
+		},
+		{
+			name: "测试截图添加url地址 & 时间戳",
+			args: args{url: `https://fofa.info`, hasTimeStamp: true},
 		},
 	}
 	for _, tt := range tests {
@@ -119,7 +124,7 @@ func TestAddUrlToTitle(t *testing.T) {
 			err := chromedp.Run(ctx, fullScreenshot(tt.args.url, 90, &buf))
 			assert.Nil(t, err)
 
-			gotResult, err := AddUrlToTitle(tt.args.url, buf)
+			gotResult, err := AddUrlToTitle(tt.args.url, buf, tt.args.hasTimeStamp)
 			assert.Nil(t, err)
 			assert.Greater(t, len(gotResult), len(buf))
 
