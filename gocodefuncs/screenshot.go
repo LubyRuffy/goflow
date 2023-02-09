@@ -41,6 +41,13 @@ type ScreenshotParam struct {
 	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
 }
 
+type ScreenshotOutput struct {
+	ScreenshotFilename string
+	ScreenshotFileSize int
+	Title              string
+	Location           string
+}
+
 type chromeActionsInput struct {
 	URL       string `json:"url"`
 	Proxy     string `json:"proxy,omitempty"`
@@ -152,7 +159,7 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 	return err
 }
 
-func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam) (string, int, error) {
+func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam) (*ScreenshotOutput, error) {
 	p.Debugf("screenshot url: %s", u)
 
 	var buf []byte
@@ -162,20 +169,25 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 	}
 	actions = append(actions, chromedp.CaptureScreenshot(&buf))
 
+	var title string
+	actions = append(actions, chromedp.Title(&title))
+	var url string
+	actions = append(actions, chromedp.Location(&url))
+
 	err := chromeActions(chromeActionsInput{
 		URL:       u,
 		Proxy:     options.Proxy,
 		UserAgent: options.UserAgent,
 	}, p.Warnf, options.Timeout, actions...)
 	if err != nil {
-		return "", 0, fmt.Errorf("screenShot failed(%w): %s", err, u)
+		return nil, fmt.Errorf("screenShot failed(%w): %s", err, u)
 	}
 
 	p.Logf(logrus.InfoLevel, "finished screenshot for %s", u)
 
 	// 在截图中添加当前请求地址
 	if options.AddUrl == true {
-		tmp, err := AddUrlToTitle(u, buf, options.AddTimeStamp)
+		tmp, err := AddUrlToTitle(u, buf, true)
 		if err != nil {
 			log.Printf("add title failed for(%s): %s", u, err.Error())
 		} else {
@@ -198,7 +210,12 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 		})
 	}
 
-	return fn, len(buf), err
+	return &ScreenshotOutput{
+		ScreenshotFilename: fn,
+		ScreenshotFileSize: len(buf),
+		Title:              title,
+		Location:           url,
+	}, err
 }
 
 // Screenshot 截图
@@ -276,10 +293,9 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 					filename = formatFilename(gjson.Get(line, options.FilenameDependency).String())
 				}
 
-				var size int
-				var sfn string
+				var screenshotOutput *ScreenshotOutput
 				url := utils.FixURL(u)
-				sfn, size, err = screenshotURL(p, url, filename, &options)
+				screenshotOutput, err = screenshotURL(p, url, filename, &options)
 				if err != nil {
 					p.Warnf("screenshotURL failed: %s, %s", url, err)
 					f.WriteString(line + "\n")
@@ -287,7 +303,9 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 				}
 
 				// 不管是否成功都先把数据写入
-				line, err = sjson.Set(line, options.SaveField, sfn)
+				line, err = sjson.Set(line, "screenshot.title", screenshotOutput.Title)
+				line, err = sjson.Set(line, "screenshot.location", screenshotOutput.Location)
+				line, err = sjson.Set(line, options.SaveField, screenshotOutput.ScreenshotFilename)
 				if err != nil {
 					return
 				}
@@ -297,13 +315,13 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 				}
 
 				artifacts = append(artifacts, &Artifact{
-					FilePath: sfn,
-					FileSize: size,
+					FilePath: screenshotOutput.ScreenshotFilename,
+					FileSize: screenshotOutput.ScreenshotFileSize,
 					FileType: "image/png",
-					FileName: filepath.Base(sfn),
+					FileName: filepath.Base(screenshotOutput.ScreenshotFilename),
 					Memo:     u,
 				})
-				AddResource(p, sfn)
+				AddResource(p, screenshotOutput.ScreenshotFilename)
 			})
 
 			return nil
