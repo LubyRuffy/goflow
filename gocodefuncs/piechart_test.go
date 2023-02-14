@@ -16,6 +16,10 @@ type testRunner struct {
 	*testing.T
 }
 
+func (t *testRunner) LastFileEmpty() bool {
+	return false
+}
+
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
 	return t.objects.Load(name)
 }
@@ -39,6 +43,9 @@ func (t *testRunner) GetContext() context.Context {
 }
 func (t *testRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
 	return "", nil
+}
+func (t *testRunner) LastFileEmty() bool {
+	return false
 }
 
 func newTestRunner(t *testing.T, jsonData string) *testRunner {
