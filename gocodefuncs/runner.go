@@ -10,7 +10,6 @@ type Runner interface {
 	SetObject(name string, value interface{})                    // 设置全局变量
 	GetLastFile() string                                         // GetLastFile 获取最后一次生成的文件
 	GetContext() context.Context                                 // GetContext 获取ctx
-	LastFileEmpty() bool                                         // LastFileEmpty 最后一次生成的文件是否为空
 	Debugf(format string, args ...interface{})                   // 打印调试信息
 	Warnf(format string, args ...interface{})                    // 打印警告信息
 	Logf(level logrus.Level, format string, args ...interface{}) // 打印日志信息

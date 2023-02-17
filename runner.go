@@ -366,15 +366,6 @@ func (p *PipeRunner) GetContext() context.Context {
 	return p.ctx
 }
 
-// LastFileEmpty 判断最终文件是否为空
-func (p *PipeRunner) LastFileEmpty() bool {
-	info, err := os.Stat(p.LastFile)
-	if err != nil {
-		panic(err)
-	}
-	return info.Size() == 0
-}
-
 // Stop 停止运行
 func (p *PipeRunner) Stop() {
 	if p.cancel != nil {
