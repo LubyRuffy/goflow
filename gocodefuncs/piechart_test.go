@@ -16,10 +16,6 @@ type testRunner struct {
 	*testing.T
 }
 
-func (t *testRunner) LastFileEmpty() bool {
-	return false
-}
-
 func (t *testRunner) GetObject(name string) (interface{}, bool) {
 	return t.objects.Load(name)
 }
