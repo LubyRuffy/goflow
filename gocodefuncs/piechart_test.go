@@ -40,7 +40,13 @@ func (t *testRunner) GetContext() context.Context {
 func (t *testRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
 	return "", nil
 }
-func (t *testRunner) LastFileEmty() bool {
+func (t *testRunner) OnJobStart() {
+	return
+}
+func (t *testRunner) OnJobFinished() {
+	return
+}
+func (t *testRunner) LastFileEmpty() bool {
 	return false
 }
 

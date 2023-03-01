@@ -219,6 +219,8 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 				actionId = strconv.Itoa(callID)
 			}
 
+			// todo: 可以在这里格式化参数，展开为全局变量，但是这样会导致全局变量优先级高于运行时变量，同时并不能解决每个块执行时需要初始化运行时变量的问题
+
 			logrus.Debug(funcName+" params:", params)
 			if p.hooks != nil {
 				p.hooks.OnWorkflowStart(funcName, actionId)
@@ -321,6 +323,14 @@ func (p *PipeRunner) FormatResourceFieldInJson(filename string) (fn string, err 
 		})
 		return err
 	})
+	return
+}
+
+func (p *PipeRunner) OnJobStart() {
+	return
+}
+
+func (p *PipeRunner) OnJobFinished() {
 	return
 }
 
