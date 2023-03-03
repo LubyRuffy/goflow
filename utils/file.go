@@ -149,6 +149,30 @@ func WriteTempFileWithName(filename string, writeF func(f *os.File) error) (fn s
 	return writeTempFile("*_"+filename, writeF)
 }
 
+// MoveFileTo 移动文件至指定位置
+func MoveFileTo(src string, dst string) (err error) {
+	path := filepath.Dir(dst)
+	exist := false
+	// 判断文件夹是否存在
+	_, err = os.Stat(path)
+	if err == nil {
+		exist = true
+	}
+	if os.IsNotExist(err) {
+		exist = false
+	}
+
+	// 创建文件夹
+	if !exist {
+		err = os.Mkdir(path, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+
+	return os.Rename(src, dst)
+}
+
 // FileLines 统计文件行
 func FileLines(fileName string) (int64, error) {
 	file, err := os.Open(fileName)
