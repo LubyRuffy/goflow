@@ -164,7 +164,7 @@ func MoveFileTo(src string, dst string) (err error) {
 
 	// 创建文件夹
 	if !exist {
-		err = os.Mkdir(path, os.ModePerm)
+		err = os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			return err
 		}
