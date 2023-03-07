@@ -17,6 +17,7 @@ type Runner interface {
 	FormatResourceFieldInJson(filename string) (string, error)   // 将资源文件对应字段中的内容从绝对路径改为文件名
 	OnJobStart()                                                 // job 起始
 	OnJobFinished()                                              // job 结束
+	LastFileEmpty() bool                                         // LastFileEmpty 最后一次生成的文件是否为空
 }
 
 // Artifact 过程中生成的文件

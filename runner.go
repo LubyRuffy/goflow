@@ -334,6 +334,15 @@ func (p *PipeRunner) OnJobFinished() {
 	return
 }
 
+// LastFileEmpty 判断最终文件是否为空
+func (p *PipeRunner) LastFileEmpty() bool {
+	info, err := os.Stat(p.LastFile)
+	if err != nil {
+		panic(err)
+	}
+	return info.Size() == 0
+}
+
 // TarGzAll 打包所有文件
 func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	var files []string
