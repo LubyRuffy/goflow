@@ -177,3 +177,31 @@ func Test_writeTempFile(t *testing.T) {
 		})
 	}
 }
+
+func TestMoveFileTo(t *testing.T) {
+	type args struct {
+		src string
+		dst string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "测试移动文件",
+			args: args{
+				src: "file_test_sample.bin",
+				dst: "./test/test.bin",
+			},
+			wantErr: assert.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.wantErr(t, MoveFileTo(tt.args.src, tt.args.dst), fmt.Sprintf("MoveFileTo(%v, %v)", tt.args.src, tt.args.dst))
+			assert.FileExists(t, tt.args.dst)
+			tt.wantErr(t, MoveFileTo(tt.args.dst, tt.args.src), fmt.Sprintf("MoveFileTo(%v, %v)", tt.args.src, tt.args.dst))
+		})
+	}
+}
