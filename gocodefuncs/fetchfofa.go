@@ -13,9 +13,10 @@ import (
 
 // FetchFofaParams 获取fofa的参数
 type FetchFofaParams struct {
-	Query  string
-	Size   int
-	Fields string
+	Query     string
+	Size      int
+	Fields    string
+	Frequency float32 `json:"frequency"`
 }
 
 var (

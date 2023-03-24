@@ -219,6 +219,8 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 				actionId = strconv.Itoa(callID)
 			}
 
+			// todo: 可以在这里格式化参数，展开为全局变量，但是这样会导致全局变量优先级高于运行时变量，同时并不能解决每个块执行时需要初始化运行时变量的问题
+
 			logrus.Debug(funcName+" params:", params)
 			if p.hooks != nil {
 				p.hooks.OnWorkflowStart(funcName, actionId)
@@ -324,6 +326,23 @@ func (p *PipeRunner) FormatResourceFieldInJson(filename string) (fn string, err 
 	return
 }
 
+func (p *PipeRunner) OnJobStart() {
+	return
+}
+
+func (p *PipeRunner) OnJobFinished() {
+	return
+}
+
+// LastFileEmpty 判断最终文件是否为空
+func (p *PipeRunner) LastFileEmpty() bool {
+	info, err := os.Stat(p.LastFile)
+	if err != nil {
+		panic(err)
+	}
+	return info.Size() == 0
+}
+
 // TarGzAll 打包所有文件
 func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	var files []string
@@ -364,15 +383,6 @@ func (p *PipeRunner) SetProgress(v float64) {
 // GetContext 获取ctx
 func (p *PipeRunner) GetContext() context.Context {
 	return p.ctx
-}
-
-// LastFileEmpty 判断最终文件是否为空
-func (p *PipeRunner) LastFileEmpty() bool {
-	info, err := os.Stat(p.LastFile)
-	if err != nil {
-		panic(err)
-	}
-	return info.Size() == 0
 }
 
 // Stop 停止运行

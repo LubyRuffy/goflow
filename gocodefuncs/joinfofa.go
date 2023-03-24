@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 // JoinFofa 根据json行从fofa获取数据并且展开
@@ -81,6 +82,10 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 				if err != nil {
 					panic(err)
 				}
+			}
+
+			if options.Frequency > 0 {
+				time.Sleep(time.Duration(options.Frequency) * time.Second)
 			}
 
 			return nil
