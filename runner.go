@@ -63,6 +63,7 @@ type PipeRunner struct {
 	gocodeRunner *coderunner.Runner // 底层的代码执行器
 	objects      sync.Map           // 全局注册的对象
 	WebHook      string             // webhook对应的地址
+	HasResult    bool               // 是否存在最终结果，用于sdk模式下的扣费辅助判断
 }
 
 // GetObject 获取全局变量
@@ -114,6 +115,7 @@ func (p *PipeRunner) Run(ctx context.Context, code string) (reflect.Value, error
 	p.content = code
 	p.ctx, p.cancel = context.WithCancel(ctx)
 	v, err := p.gocodeRunner.Run(code)
+	p.HasResult = !p.LastFileEmpty()
 	p.doWebHook(map[string]interface{}{
 		"event": "finished",
 		"cost":  time.Since(s).String(),
@@ -240,7 +242,7 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 					pt.Error = r.(error).Error()
 					pt.Cost = time.Since(s)
 					p.AddWorkflow(pt)
-					panic(r)
+					panic(r.(error).Error())
 				}
 			}()
 
