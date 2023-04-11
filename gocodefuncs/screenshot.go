@@ -54,7 +54,7 @@ type chromeActionsInput struct {
 	UserAgent string `json:"userAgent,omitempty"`
 }
 
-//chromeActions 完成chrome的headless操作
+// chromeActions 完成chrome的headless操作
 func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), timeout int, actions ...chromedp.Action) error {
 	var err error
 
@@ -364,22 +364,32 @@ func UseGlobalValue(p Runner, name string) bool {
 	return false
 }
 
-//AddResourceField 在object中添加资源字段
+// AddResourceField 在object中添加资源字段
 func AddResourceField(p Runner, field string) {
 	AddObjectSlice(p, utils.ResourceFieldsObjectName, field)
 }
 
-//AddResource 在object中添加资源列表
+// AddResource 在object中添加资源列表
 func AddResource(p Runner, resource string) {
 	AddObjectSlice(p, utils.ResourcesObjectName, resource)
 }
 
-//AddStaticResource 在object中添加static资源
+// AddStaticResource 在object中添加static资源
 func AddStaticResource(p Runner, resource string) {
 	AddObjectSlice(p, utils.StaticResourceObjectName, resource)
 }
 
-//AddObjectSlice 在object
+// ReplaceResourcePath 替换 object 中的资源
+func ReplaceResourcePath(p Runner, old, new string) {
+	ReplaceObjectSlice(p, utils.ResourcesObjectName, old, new)
+}
+
+// ReplaceStaticResourcePath 替换 object 中的静态资源
+func ReplaceStaticResourcePath(p Runner, old, new string) {
+	ReplaceObjectSlice(p, utils.StaticResourceObjectName, old, new)
+}
+
+// AddObjectSlice 在object slice 中添加元素
 func AddObjectSlice(p Runner, objectName, ele string) {
 	var result []string
 	if res, ok := p.GetObject(objectName); ok {
@@ -393,7 +403,26 @@ func AddObjectSlice(p Runner, objectName, ele string) {
 	p.SetObject(objectName, result)
 }
 
-//AddUrlToTitle 通过html转换对整个screenshot截图结果进行处理，添加标题栏并在其中写入访问的url地址
+// ReplaceObjectSlice 在 object slice 中替换元素
+func ReplaceObjectSlice(p Runner, objectName, old, new string) {
+	var result []string
+	if res, ok := p.GetObject(objectName); ok {
+		if result, ok = res.([]string); !ok {
+			result = []string{}
+		}
+	} else {
+		result = []string{}
+	}
+
+	for i, s := range result {
+		if s == old {
+			result[i] = new
+		}
+	}
+	p.SetObject(objectName, result)
+}
+
+// AddUrlToTitle 通过html转换对整个screenshot截图结果进行处理，添加标题栏并在其中写入访问的url地址
 func AddUrlToTitle(url string, picBuf []byte, hasTimeStamp bool) (result []byte, err error) {
 	htmlPart1 := `<!DOCTYPE html>
 <html lang="en">
