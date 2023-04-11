@@ -242,6 +242,9 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 					pt.Error = r.(error).Error()
 					pt.Cost = time.Since(s)
 					p.AddWorkflow(pt)
+					p.Logf(logrus.ErrorLevel,
+						"action %s running with param %s failed, error: %s",
+						pt.ActionID, pt.Content, r.(error).Error())
 					panic(r.(error).Error())
 				}
 			}()
