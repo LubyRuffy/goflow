@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"context"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/LubyRuffy/gofofa"
@@ -43,6 +44,10 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 	if !ok {
 		panic(fmt.Errorf("HostSearch failed: doesn't set fofacli"))
 	}
+	// 设置context
+	ctx, cancel := context.WithCancel(p.GetContext())
+	defer cancel()
+	fofaCli.(*gofofa.Client).SetContext(ctx)
 
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {

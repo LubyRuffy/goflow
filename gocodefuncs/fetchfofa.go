@@ -40,6 +40,8 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("fofa fields cannot be empty"))
 	}
 
+	options.Query = ExpendVarWithJsonLine(p, options.Query, "")
+
 	maxSize, ok := p.GetObject(FetchMaxSizeObjectName)
 	if !ok {
 		maxSize = DefaultFetchMaxSize

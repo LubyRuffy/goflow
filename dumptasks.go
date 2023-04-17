@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// DumpTasks tasks dump to html
+// DumpTasks tasks dump to html 生成的结果用于前端 HTML tab 下的数据展示
 func (p *PipeRunner) DumpTasks(server bool, prefix string, fileMap sync.Map) string {
 	t, err := template.New("tasks").Funcs(template.FuncMap{
 		"toFileName": func(u string) string {
