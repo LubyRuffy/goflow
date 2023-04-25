@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/LubyRuffy/gofofa v0.1.11
 	github.com/Ullaakut/nmap/v2 v2.2.0
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/brimdata/zed v1.3.0
 	github.com/chromedp/cdproto v0.0.0-20220620034043-93c6adfcda6a

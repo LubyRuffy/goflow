@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/LubyRuffy/gofofa"
+	"github.com/avast/retry-go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/tidwall/sjson"
 	"os"
@@ -65,10 +66,24 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 
 			// 请求fofa
 			var res [][]string
-			res, err = fofaCli.(*gofofa.Client).HostSearch(query, options.Size, fields)
-			if err != nil {
-				panic(fmt.Errorf("HostSearch failed: %w", err))
-			}
+
+			err := retry.Do(
+				func() error {
+					res, err = fofaCli.(*gofofa.Client).HostSearch(query, options.Size, fields)
+					if err != nil {
+						return fmt.Errorf("HostSearch failed: %w", err)
+					}
+
+					return nil
+				},
+				retry.DelayType(retry.BackOffDelay),
+				retry.Delay(time.Second*1),
+				retry.MaxDelay(time.Second*3),
+				retry.Attempts(3),
+				retry.OnRetry(func(n uint, err error) {
+					fmt.Printf("Retry %d: %s\n", n, err.Error())
+				}),
+			)
 
 			if len(res) > 0 {
 				for i := range res {
