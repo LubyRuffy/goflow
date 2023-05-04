@@ -39,7 +39,7 @@ type ScreenshotParam struct {
 	AddUrl             bool   `json:"addUrl"`                       // 在截图中展示url地址
 	AddTimeStamp       bool   `json:"AddTimeStamp"`                 // 在截图中展示时间戳
 	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
-	UseBase64          bool   `json:"base64"`                       // 是否输出图片的 base64 格式
+	Base64             bool   `json:"base64"`                       // 是否输出图片的 base64 格式
 }
 
 type ScreenshotOutput struct {
@@ -214,8 +214,8 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 
 	// 生成 base64 内容
 	var screenshotBase64 string
-	if options.UseBase64 {
-		screenshotBase64 = `ddata:image/png;base64,` + base64.StdEncoding.EncodeToString(buf)
+	if options.Base64 {
+		screenshotBase64 = `data:image/png;base64,` + base64.StdEncoding.EncodeToString(buf)
 	}
 
 	return &ScreenshotOutput{
@@ -312,7 +312,7 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 				}
 
 				// 写入 base64
-				if options.UseBase64 {
+				if options.Base64 {
 					line, err = sjson.Set(line, "screenshot.base64", screenshotOutput.ScreenshotBase64)
 				}
 
