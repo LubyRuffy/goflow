@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/chromedp"
@@ -17,19 +18,30 @@ import (
 )
 
 // renderURLDOM 生成单个url的domhtml
-func renderURLDOM(p Runner, in chromeActionsInput, timeout int) (string, error) {
+func renderURLDOM(p Runner, in chromeActionsInput, timeout int, options *ScreenshotParam) (string, error) {
 	p.Debugf("render url dom: %s", in.URL)
 
+	var actions []chromedp.Action
+	if options.Sleep > 0 {
+		actions = append(actions, chromedp.Sleep(time.Second*time.Duration(options.Sleep)))
+	}
+
+	var title string
+	actions = append(actions, chromedp.Title(&title))
+	var url string
+	actions = append(actions, chromedp.Location(&url))
+
 	var html string
-	err := chromeActions(in, p.Debugf, timeout,
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			node, err := dom.GetDocument().Do(ctx)
-			if err != nil {
-				return err
-			}
-			html, err = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
+	actions = append(actions, chromedp.ActionFunc(func(ctx context.Context) error {
+		node, err := dom.GetDocument().Do(ctx)
+		if err != nil {
 			return err
-		}))
+		}
+		html, err = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
+		return err
+	}))
+
+	err := chromeActions(in, p.Warnf, timeout, actions...)
 	if err != nil {
 		return "", fmt.Errorf("renderURLDOM failed(%w): %s", err, in.URL)
 	}
@@ -54,6 +66,9 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 	if options.Timeout == 0 {
 		options.Timeout = 30
 	}
+	if options.Workers == 0 {
+		options.Workers = 5
+	}
 
 	// 配置代理：积木块Proxy > 全局 proxy
 	if UseGlobalValue(p, UseGlobalProxy) {
@@ -75,7 +90,7 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 
 	var processed int64
 
-	wp := workerpool.New(5)
+	wp := workerpool.New(options.Workers)
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		var wpErr error
@@ -106,7 +121,7 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 					URL:       u,
 					Proxy:     options.Proxy,
 					UserAgent: options.UserAgent,
-				}, options.Timeout)
+				}, options.Timeout, &options)
 
 				// 不管是否成功都先把数据写入
 				line, err = sjson.Set(line, options.SaveField, html)

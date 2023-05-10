@@ -460,7 +460,7 @@ func New() *PipeRunner {
 		{"ToSql", gocodefuncs.ToSql},
 		{"GenData", gocodefuncs.GenData},
 		{"URLFix", gocodefuncs.UrlFix},
-		{"RenderDOM", gocodefuncs.RenderDOM},
+		//{"RenderDOM", gocodefuncs.RenderDOM},
 		{"ScanPort", gocodefuncs.ScanPort},
 		{"ParseURL", gocodefuncs.ParseURL},
 		{"HttpRequest", gocodefuncs.HttpRequest},
