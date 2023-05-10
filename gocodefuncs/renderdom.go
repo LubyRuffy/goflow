@@ -17,8 +17,15 @@ import (
 	"golang.org/x/net/context"
 )
 
+type RenderDomOutput struct {
+	Url      string
+	Html     string
+	Title    string
+	Location string
+}
+
 // renderURLDOM 生成单个url的domhtml
-func renderURLDOM(p Runner, in chromeActionsInput, timeout int, options *ScreenshotParam) (string, error) {
+func renderURLDOM(p Runner, in chromeActionsInput, timeout int, options *ScreenshotParam) (*RenderDomOutput, error) {
 	p.Debugf("render url dom: %s", in.URL)
 
 	var actions []chromedp.Action
@@ -43,10 +50,15 @@ func renderURLDOM(p Runner, in chromeActionsInput, timeout int, options *Screens
 
 	err := chromeActions(in, p.Warnf, timeout, actions...)
 	if err != nil {
-		return "", fmt.Errorf("renderURLDOM failed(%w): %s", err, in.URL)
+		return nil, fmt.Errorf("renderURLDOM failed(%w): %s", err, in.URL)
 	}
 
-	return html, err
+	return &RenderDomOutput{
+		Url:      in.URL,
+		Html:     html,
+		Title:    title,
+		Location: url,
+	}, err
 }
 
 // RenderDOM 动态渲染指定的URL，拼凑HTML
@@ -61,7 +73,7 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 		options.URLField = "url"
 	}
 	if options.SaveField == "" {
-		options.SaveField = "rendered_html"
+		options.SaveField = "rendered.html"
 	}
 	if options.Timeout == 0 {
 		options.Timeout = 30
@@ -116,15 +128,23 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 					u = "http://" + u
 				}
 
-				var html string
-				html, err = renderURLDOM(p, chromeActionsInput{
+				var out *RenderDomOutput
+				out, err = renderURLDOM(p, chromeActionsInput{
 					URL:       u,
 					Proxy:     options.Proxy,
 					UserAgent: options.UserAgent,
 				}, options.Timeout, &options)
+				if err != nil {
+					p.Debugf("failed to render url %s, with error: %s", u, err.Error())
+					// 报错，写入原始内容
+					_, _ = f.WriteString(line + "\n")
+					return
+				}
 
 				// 不管是否成功都先把数据写入
-				line, err = sjson.Set(line, options.SaveField, html)
+				line, err = sjson.Set(line, options.SaveField, out.Html)
+				line, err = sjson.Set(line, "rendered.title", out.Title)
+				line, err = sjson.Set(line, "rendered.location", out.Location)
 				if err != nil {
 					return
 				}

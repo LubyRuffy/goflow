@@ -239,7 +239,7 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 		options.URLField = "url"
 	}
 	if options.SaveField == "" {
-		options.SaveField = "screenshot_filepath"
+		options.SaveField = "screenshot.filepath"
 	}
 	if options.Timeout == 0 {
 		options.Timeout = 30

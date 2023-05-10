@@ -320,7 +320,10 @@ func (p *PipeRunner) FormatResourceFieldInJson(filename string) (fn string, err 
 			if flds, ok := p.GetObject(utils.ResourceFieldsObjectName); ok {
 				for _, fld := range flds.([]string) {
 					file := gjson.Get(line, fld).String()
-					line, _ = sjson.Set(line, fld, filepath.Base(file))
+					if file != "" {
+						// 此处存在字段被删除的情况，需要在字段没有被删除的情况下再进行文件替换
+						line, _ = sjson.Set(line, fld, filepath.Base(file))
+					}
 				}
 			}
 			f.WriteString(line + "\n")
