@@ -69,7 +69,7 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 
 			err := retry.Do(
 				func() error {
-					res, err = fofaCli.(*gofofa.Client).HostSearch(query, options.Size, fields)
+					res, err = fofaCli.(*gofofa.Client).HostSearch(query, options.Size, fields, &gofofa.SecondaryOptions{Full: options.Full})
 					if err != nil {
 						return fmt.Errorf("HostSearch failed: %w", err)
 					}
