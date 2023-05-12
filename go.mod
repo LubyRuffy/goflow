@@ -82,3 +82,5 @@ require (
 	golang.org/x/term v0.8.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.1.12
