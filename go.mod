@@ -3,8 +3,9 @@ module github.com/LubyRuffy/goflow
 go 1.18
 
 require (
-	github.com/LubyRuffy/gofofa v0.1.11
+	github.com/LubyRuffy/gofofa v0.1.12-0.20230417162414-e7a5222bead3
 	github.com/Ullaakut/nmap/v2 v2.2.0
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/brimdata/zed v1.3.0
 	github.com/chromedp/cdproto v0.0.0-20220620034043-93c6adfcda6a
@@ -28,8 +29,8 @@ require (
 	github.com/urfave/cli/v2 v2.8.1
 	github.com/weppos/publicsuffix-go v0.15.0
 	github.com/xuri/excelize/v2 v2.6.0
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234
-	golang.org/x/text v0.3.7
+	golang.org/x/net v0.10.0
+	golang.org/x/text v0.9.0
 )
 
 require (
@@ -66,7 +67,7 @@ require (
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/twmb/murmur3 v1.1.6 // indirect
+	github.com/twmb/murmur3 v1.1.7 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/xuri/efp v0.0.0-20220603152613-6918739fd470 // indirect
@@ -77,7 +78,9 @@ require (
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.1.12

@@ -20,7 +20,7 @@ func UrlFix(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("urlFix must has a field"))
 	}
 
-	fn, err = utils.WriteTempFile("", func(f *os.File) error {
+	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		return utils.EachLineWithContext(p.GetContext(), p.GetLastFile(), func(line string) error {
 			v := gjson.Get(line, field).String()
 			if len(v) == 0 {

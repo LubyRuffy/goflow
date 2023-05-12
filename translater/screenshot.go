@@ -22,7 +22,7 @@ func screenshotHook(fi *workflowast.FuncInfo) string {
 			urlField = v
 		}
 	}
-	saveField := "screenshot_filepath"
+	saveField := "screenshot.filepath"
 	if len(fi.Params) > 1 {
 		if v := fi.Params[1].RawString(); len(v) > 0 {
 			saveField = v

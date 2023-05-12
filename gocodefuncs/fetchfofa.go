@@ -16,7 +16,8 @@ type FetchFofaParams struct {
 	Query     string
 	Size      int
 	Fields    string
-	Frequency float32 `json:"frequency"`
+	Frequency float32 `json:"frequency" dc:"请求间隔，以秒为单位"`
+	Full      bool    `json:"full" dc:"是否搜索全时间段的数据"`
 }
 
 var (
@@ -63,7 +64,7 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	defer cancel()
 	fofaCli.(*gofofa.Client).SetContext(ctx)
 
-	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields)
+	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields, &gofofa.SecondaryOptions{Full: options.Full})
 	if err != nil {
 		panic(fmt.Errorf("HostSearch failed: %w", err))
 	}

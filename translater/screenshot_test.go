@@ -10,7 +10,7 @@ func TestLoad_screenshot(t *testing.T) {
 	assert.Equal(t,
 		`Screenshot(GetRunner(), map[string]interface{}{
 	"urlField": "host",
-	"saveField": "screenshot_filepath",
+	"saveField": "screenshot.filepath",
 	"timeout": 30,
 	"workers": 5,
 })
@@ -20,7 +20,7 @@ func TestLoad_screenshot(t *testing.T) {
 	assert.Equal(t,
 		`Screenshot(GetRunner(), map[string]interface{}{
 	"urlField": "url",
-	"saveField": "screenshot_filepath",
+	"saveField": "screenshot.filepath",
 	"timeout": 30,
 	"workers": 5,
 })
@@ -30,7 +30,7 @@ func TestLoad_screenshot(t *testing.T) {
 	assert.Equal(t,
 		`Screenshot(GetRunner(), map[string]interface{}{
 	"urlField": "url",
-	"saveField": "screenshot_filepath",
+	"saveField": "screenshot.filepath",
 	"timeout": 30,
 	"workers": 5,
 })
