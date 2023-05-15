@@ -29,6 +29,15 @@ func JoinFofa(p Runner, params map[string]interface{}) *FuncResult {
 		panic(fmt.Errorf("fofa fields cannot be empty"))
 	}
 
+	// 检测允许查询的最大值
+	maxSize, ok := p.GetObject(FetchMaxSizeObjectName)
+	if !ok {
+		maxSize = DefaultFetchMaxSize
+	}
+	if options.Size > maxSize.(int) {
+		panic(fmt.Errorf("max size greater than: %d", maxSize))
+	}
+
 	fields := strings.Split(options.Fields, ",")
 
 	var lines int64

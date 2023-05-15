@@ -33,14 +33,16 @@ func TestJoinFofa1(t *testing.T) {
 	fofaCli, _ := gofofa.NewClient(gofofa.WithURL(ts.URL))
 
 	type args struct {
-		p      Runner
-		params map[string]interface{}
-		runs   int
+		p       Runner
+		params  map[string]interface{}
+		runs    int
+		maxSize int
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name      string
+		args      args
+		want      string
+		errorFunc assert.ErrorAssertionFunc
 	}{
 		{
 			name: "测试正常请求",
@@ -54,7 +56,8 @@ func TestJoinFofa1(t *testing.T) {
 				},
 				runs: 1,
 			},
-			want: "443",
+			want:      "443",
+			errorFunc: assert.NoError,
 		},
 		{
 			name: "测试请求频率超限",
@@ -68,14 +71,39 @@ func TestJoinFofa1(t *testing.T) {
 				},
 				runs: 30,
 			},
-			want: "443",
+			want:      "443",
+			errorFunc: assert.NoError,
+		},
+		{
+			name: "测试请求数量超限",
+			args: args{
+				p: newTestRunner(t, `{}`),
+				params: map[string]interface{}{
+					"query":  `host="fofa.info"`,
+					"size":   50000,
+					"fields": "ip,port",
+				},
+				maxSize: 500,
+				runs:    1,
+			},
+			want:      "",
+			errorFunc: assert.Error,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					tt.errorFunc(t, r.(error))
+				}
+			}()
+
 			start := time.Now()
 			for i := 0; i < tt.args.runs; i++ {
 				tt.args.p.SetObject(FofaObjectName, fofaCli)
+				if tt.args.maxSize > 0 {
+					tt.args.p.SetObject(FetchMaxSizeObjectName, tt.args.maxSize)
+				}
 				res := JoinFofa(tt.args.p, tt.args.params)
 				fileBytes, err := ReadFirstLineOfFile(res.OutFile)
 				assert.Nil(t, err)
