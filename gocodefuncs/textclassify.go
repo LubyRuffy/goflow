@@ -39,12 +39,12 @@ func TextClassify(p Runner, params map[string]interface{}) *FuncResult {
 	}
 	var regexFilterList []regItem
 	for i := range options.Filters {
-		r, err := regexp.Compile(options.Filters[i][1])
+		r, err := regexp.Compile(options.Filters[i][0])
 		if err != nil {
 			panic(fmt.Errorf("TextClassify failed: regex is not valid: %s", options.Filters[i][1]))
 		}
 		regexFilterList = append(regexFilterList, regItem{
-			Tag:    options.Filters[i][0],
+			Tag:    options.Filters[i][1],
 			Regexp: r,
 		})
 	}
