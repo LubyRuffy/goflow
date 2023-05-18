@@ -103,6 +103,7 @@ func RenderDOM(p Runner, params map[string]interface{}) *FuncResult {
 	var processed int64
 
 	wp := workerpool.New(options.Workers)
+	defer wp.Stop()
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		var wpErr error
