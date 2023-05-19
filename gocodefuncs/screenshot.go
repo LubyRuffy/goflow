@@ -92,7 +92,12 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 	}
 
 	allocCtx, bcancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer bcancel()
+	defer func() {
+		bcancel()
+		// linux系统不会主动关闭无头浏览器，需要手动进行关闭，否则会造成内存泄漏
+		b := chromedp.FromContext(allocCtx).Browser
+		b.Process().Signal(os.Kill)
+	}()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(logf))
 	ctx, cancel = context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
