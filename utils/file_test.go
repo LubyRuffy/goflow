@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -172,6 +173,18 @@ func Test_writeTempFile(t *testing.T) {
 			assert.FileExists(t, fn)
 			fn = filepath.Base(fn)
 			match, err = regexp.Match(`\d+_test.json`, []byte(fn))
+			assert.Nil(t, err)
+			assert.Truef(t, match, fmt.Sprintf("unmatched filename: %s", fn))
+
+			// 只根据文件名写入文件，不添加随机前缀
+			fn, err = WriteTempFileWithNameOnly(tt.args.filename, func(f *os.File) error {
+				_, err = f.Write(buf)
+				return err
+			})
+			assert.Nil(t, err)
+			assert.FileExists(t, fn)
+			fn = filepath.Base(fn)
+			match = strings.EqualFold(fn, tt.args.filename)
 			assert.Nil(t, err)
 			assert.Truef(t, match, fmt.Sprintf("unmatched filename: %s", fn))
 		})
