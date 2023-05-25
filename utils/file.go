@@ -111,7 +111,7 @@ func LoadFirstExistsFile(paths []string) string {
 // 返回文件名和错误
 func writeTempFile(filename string, writeF func(f *os.File) error) (fn string, err error) {
 	var f *os.File
-	if len(filename) > 0 && filepath.Ext(filename) == filename {
+	if len(filename) > 0 && filepath.Ext(filename) == filename || filename == "" {
 		filename = "*" + filename
 		f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+filename)
 	} else {
