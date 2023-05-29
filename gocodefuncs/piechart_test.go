@@ -38,7 +38,7 @@ func (t *testRunner) GetContext() context.Context {
 	return context.Background()
 }
 func (t *testRunner) FormatResourceFieldInJson(filename string) (fn string, err error) {
-	return "", nil
+	return filename, nil
 }
 func (t *testRunner) OnJobStart() {
 	return
