@@ -8,6 +8,8 @@ import (
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/traefik/yaegi/interp"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -115,10 +117,13 @@ func (p *PipeRunner) Run(ctx context.Context, code string) (reflect.Value, error
 	p.content = code
 	p.ctx, p.cancel = context.WithCancel(ctx)
 	v, err := p.gocodeRunner.Run(code)
+	if err != nil {
+		log.Println("run code failed with:\n", err.(interp.Panic).Stack)
+	}
 	p.HasResult = !p.LastFileEmpty()
 	p.doWebHook(map[string]interface{}{
 		"event": "finished",
-		"cost":  time.Since(s).String(),
+		"cost":  time.Since(s).Truncate(time.Millisecond).String(),
 		"tasks": p.Tasks,
 	})
 	return v, err

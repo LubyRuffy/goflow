@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -110,11 +111,15 @@ func LoadFirstExistsFile(paths []string) string {
 // 返回文件名和错误
 func writeTempFile(filename string, writeF func(f *os.File) error) (fn string, err error) {
 	var f *os.File
-	if len(filename) > 0 && filepath.Ext(filename) == filename {
+	if len(filename) > 0 && filepath.Ext(filename) == filename || filename == "" {
 		filename = "*" + filename
 		f, err = os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+filename)
 	} else {
-		f, err = os.CreateTemp(os.TempDir(), filename)
+		if strings.Contains(filename, "*") {
+			f, err = os.CreateTemp(os.TempDir(), filename)
+		} else {
+			f, err = os.Create(filepath.Join(os.TempDir(), filename))
+		}
 	}
 
 	if err != nil {
@@ -139,6 +144,14 @@ func writeTempFile(filename string, writeF func(f *os.File) error) (fn string, e
 // 返回文件名和错误
 func WriteTempFile(ext string, writeF func(f *os.File) error) (fn string, err error) {
 	return writeTempFile(ext, writeF)
+}
+
+// WriteTempFileWithNameOnly 写入临时文件
+// 输入文件名称
+// 如果writeF是nil，就只返回生成的一个临时空文件路径
+// 返回文件名和错误
+func WriteTempFileWithNameOnly(filename string, writeF func(f *os.File) error) (fn string, err error) {
+	return writeTempFile(filename, writeF)
 }
 
 // WriteTempFileWithName 写入临时文件，指定生成的文件名

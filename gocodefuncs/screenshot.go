@@ -40,6 +40,7 @@ type ScreenshotParam struct {
 	AddTimeStamp       bool   `json:"AddTimeStamp"`                 // 在截图中展示时间戳
 	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
 	Base64             bool   `json:"base64"`                       // 是否输出图片的 base64 格式
+	RandomPrefix       bool   `json:"randomPrefix"`                 // 是否添加随机前缀
 }
 
 type ScreenshotOutput struct {
@@ -92,7 +93,12 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 	}
 
 	allocCtx, bcancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer bcancel()
+	defer func() {
+		bcancel()
+		// linux系统不会主动关闭无头浏览器，需要手动进行关闭，否则会造成内存泄漏
+		b := chromedp.FromContext(allocCtx).Browser
+		b.Process().Signal(os.Kill)
+	}()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(logf))
 	ctx, cancel = context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
@@ -198,9 +204,15 @@ func screenshotURL(p Runner, u string, filename string, options *ScreenshotParam
 	}
 
 	var fn string
-	if filename != "" {
+	if filename != "" && options.RandomPrefix == true {
 		// 如果指定文件名，则进行指定命名
 		fn, err = utils.WriteTempFileWithName(filename+".png", func(f *os.File) error {
+			_, err = f.Write(buf)
+			return err
+		})
+	} else if filename != "" && options.RandomPrefix == false {
+		// 指定文件名，且不添加随机前缀
+		fn, err = utils.WriteTempFileWithNameOnly(filename+".png", func(f *os.File) error {
 			_, err = f.Write(buf)
 			return err
 		})
@@ -271,6 +283,7 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 	var processed int64
 
 	wp := workerpool.New(options.Workers)
+	defer wp.Stop()
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		var wpErr error
