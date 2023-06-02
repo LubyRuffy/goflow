@@ -118,7 +118,12 @@ func (p *PipeRunner) Run(ctx context.Context, code string) (reflect.Value, error
 	p.ctx, p.cancel = context.WithCancel(ctx)
 	v, err := p.gocodeRunner.Run(code)
 	if err != nil {
-		log.Println("run code failed with:\n", err.(interp.Panic).Stack)
+		// 这里打印错误信息
+		if err1, ok := err.(interp.Panic); ok {
+			log.Println("run code failed with:\n", string(err1.Stack))
+		} else {
+			log.Println(err)
+		}
 	}
 	p.HasResult = !p.LastFileEmpty()
 	p.doWebHook(map[string]interface{}{
