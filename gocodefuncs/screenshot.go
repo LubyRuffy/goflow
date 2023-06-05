@@ -41,6 +41,7 @@ type ScreenshotParam struct {
 	FilenameDependency string `json:"filenameDependency,omitempty"` // 根据哪个字段进行文件命名
 	Base64             bool   `json:"base64"`                       // 是否输出图片的 base64 格式
 	RandomPrefix       bool   `json:"randomPrefix"`                 // 是否添加随机前缀
+	FilenameSeparator  string `json:"filenameSeparator"`            // 根据多个字段命名时，通过指定该字段，设置分隔符
 }
 
 type ScreenshotOutput struct {
@@ -97,7 +98,9 @@ func chromeActions(in chromeActionsInput, logf func(string, ...interface{}), tim
 		bcancel()
 		// linux系统不会主动关闭无头浏览器，需要手动进行关闭，否则会造成内存泄漏
 		b := chromedp.FromContext(allocCtx).Browser
-		b.Process().Signal(os.Kill)
+		if b != nil && b.Process() != nil {
+			b.Process().Signal(os.Kill)
+		}
 	}()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(logf))
@@ -310,10 +313,13 @@ func Screenshot(p Runner, params map[string]interface{}) *FuncResult {
 					}
 				}
 
-				var filename string
-				if options.FilenameDependency != "" {
-					filename = formatFilename(gjson.Get(line, options.FilenameDependency).String())
+				// get filename
+				var filenames = []string{}
+				dependencies := strings.Split(options.FilenameDependency, options.FilenameSeparator)
+				for _, depend := range dependencies {
+					filenames = append(filenames, formatFilename(gjson.Get(line, depend).String()))
 				}
+				filename := strings.Join(filenames, options.FilenameSeparator)
 
 				var screenshotOutput *ScreenshotOutput
 				url := utils.FixURL(u)
