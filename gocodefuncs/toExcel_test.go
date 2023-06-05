@@ -97,14 +97,14 @@ func TestToExcel1(t *testing.T) {
 			},
 		},
 		{
-			name: "测试自动合并输入",
+			name: "测试json自动格式化",
 			args: args{
 				params: map[string]interface{}{
-					"rawFormat": false,
-					"insertPic": false,
-					"autoMerge": true,
+					"rawFormat":  false,
+					"insertPic":  false,
+					"jsonFormat": true,
 				},
-				inputJson: "{\"Sheet1\":[[\"IP\",\"47.106.125.91\",\"47.106.125.91\",\"47.106.125.91\",\"47.106.125.91\"],[\"地理位置\",\"广东省广州市\",\"注册机构\",\"阿里云\",\"阿里云\"],[\"网络类型\",\"数据中心\",\"经纬度\",\"113.307650,23.120049\",\"113.307650,23.120049\"],[\"ASN\",\"AS37963CNNIC-ALIBABA-CN-NET-AP\",\"IDC服务器\",\"是\",\"是\"],[\"网络资产\",\"22\",\"TCP/SSH\",\"OpenSSH\",\"SSH-2.0-OpenSSH_7.4\"],[\"网络资产\",\"443\",\"TCP/HTTP\",\"NGINX,digicert-Cert\",\"HTTP/1.1502BadGateway\\nConnection:close\"],[\"网络资产\",\"80\",\"TCP/HTTP\",\"NGINX\",\"HTTP/1.1200OK\\nConnection:close\"],[\"网络资产\",\"9200\",\"TCP/ELASTIC\",\"Log4j2,Elasticsearch\",\"HTTP/1.0200OK\\nX-elastic-product:Elasticsearch\"],[\"网络资产\",\"11001\",\"TCP/HTTP\",\"\",\"HTTP/1.1400BadRequest\\nContent-Type:text/html;charset=us-ascii\"],[\"网络资产\",\"3000\",\"TCP/HTTP\",\"\",\"HTTP/1.1200OK\\nAccess-Control-Allow-Origin:*\"],[\"网络资产\",\"6001\",\"TCP/UNKNOW\",\"\",\"\\\\x00\\\\x00\\\\x00\\\\x01\\\\x00\"],[\"网络资产\",\"9003\",\"TCP/HTTP\",\"\",\"HTTP/1.1200OK\\nConnection:close\"],[\"根域资产（半年内）\",\"enyamusic.cn\",\"\",\"postmaster@enyamusic.pro\",\"广州恩雅创新科技有限公司\"],[\"根域资产（半年内）\",\"makedingge.com\",\"+86.95187\",\"DomainAbuse@service.aliyun.com\"],[\"IP情报\",\"02-17-17\",\"06-01-18\",\"垃圾邮件\",\"过期\"],[\"Web页面\",\"443\",\"资产测绘标题（502BadGateway）\",\"目前标题（502BadGateway）\"],[\"Web页面\",\"80\",\"资产测绘标题（Welcometonginx!）\",\"目前标题（Welcometonginx!）\"],[\"Web页面\",\"11001\",\"资产测绘标题（无）\",\"目前标题（无）\",\"无法截图\"],[\"Web页面\",\"3000\",\"资产测绘标题（无）\",\"目前标题（无）\",\"无法截图\"],[\"Web页面\",\"9003\",\"资产测绘标题（无）\",\"目前标题（无）\",\"无法截图\"],[\"证书\",\"443\",\"\",\"*.enyamusic.cn\",\"*.enyamusic.cn\"],[\"C段Web资产标题排序\",\"口袋客app（771）\",\"口袋客app（771）\",\"口袋客app（771）\",\"口袋客app（771）\"],[\"C段Web资产标题排序\",\"301MovedPermanently（50）\",\"301MovedPermanently（50）\",\"301MovedPermanently（50）\",\"301MovedPermanently（50）\"],[\"C段Web资产标题排序\",\"403Forbidden（49）\",\"403Forbidden（49）\",\"403Forbidden（49）\",\"403Forbidden（49）\"],[\"C段Web资产标题排序\",\"安全入口校验失败（26）\",\"安全入口校验失败（26）\",\"安全入口校验失败（26）\",\"安全入口校验失败（26）\"],[\"C段Web资产标题排序\",\"NotFound（21）\",\"NotFound（21）\",\"NotFound（21）\",\"NotFound（21）\"],[\"IP和域名网络情报\",\"enyamusic.cn\",\"sadf\",\"sadf\",\"sadf\"],[\"IP和域名网络情报\",\"makedingge.com\",\"asadf\",\"asadf\",\"asadf\"],[\"IP和域名网络情报\",\"103.117.102.89\",\"fdfasf\",\"fdfasf\",\"fdfasf\"]]}",
+				inputJson: "{\"ip\":\"122.224.163.198\",\"location\":{\"city\":\"Hangzhou City\",\"country\":\"China\",\"country_code\":\"CN\",\"lat\":\"30.384272\",\"lng\":\"119.987002\",\"province\":\"Zhejiang\",\"source\":\"threatbook.cn/ip\"},\"asn\":{\"source\":\"fofa.info/host\",\"value\":4134},\"org\":{\"source\":\"fofa.info/host\",\"value\":\"Chinanet\"},\"judgements\":{\"value\":[\"Gateway\",\"Exploit\"],\"source\":\"threatbook.cn/ip\"},\"c_title\":[{\"count\":27,\"name\":\"DPTECH ONLINE\",\"source\":\"fofa.info/stats\"},{\"count\":21,\"name\":\"Welcome to tengine!\",\"source\":\"fofa.info/stats\"},{\"count\":20,\"name\":\"域名暂未生效\",\"source\":\"fofa.info/stats\"},{\"count\":18,\"name\":\"建设中\",\"source\":\"fofa.info/stats\"},{\"count\":12,\"name\":\"HTTP状态 404 - 未找到\",\"source\":\"fofa.info/stats\"}],\"ports\":[{\"port\":8999,\"products\":[\"Oracle-JSP\",\"泛微-EMobile\",\"Log4j2\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-11 11:00:00\"},{\"port\":9000,\"products\":[\"泛微-EMobile\",\"Log4j2\",\"NGINX\",\"Oracle-JSP\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-03 21:00:00\"},{\"port\":2223,\"products\":[\"ubuntu-系统\",\"OpenSSH\"],\"protocol\":\"ssh\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-18 07:00:00\"},{\"port\":9090,\"products\":[\"Oracle-JSP\",\"jQuery\",\"泛微-E-Weaver\",\"Log4j2\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-01 06:00:00\"}],\"threatbook_lab\":[{\"confidence\":75,\"expired\":false,\"find_time\":\"2021-10-25 21:30:23\",\"intel_tags\":[],\"intel_types\":[\"Exploit\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-05-31 01:12:26\"},{\"confidence\":80,\"expired\":false,\"find_time\":\"2021-07-26 05:38:17\",\"intel_tags\":[],\"intel_types\":[\"Dynamic IP\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-02-17 07:33:12\"},{\"confidence\":85,\"expired\":false,\"find_time\":\"2020-04-24 02:24:01\",\"intel_tags\":[],\"intel_types\":[\"Gateway\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-05-29 19:19:42\"},{\"confidence\":85,\"expired\":false,\"find_time\":\"2023-04-21 01:15:58\",\"intel_tags\":[[\"CVE-2022-22965\",\"Spring4Exp\"]],\"intel_types\":[\"Exploit\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-04-21 01:15:57\"}]}",
 			},
 		},
 	}
@@ -113,6 +113,7 @@ func TestToExcel1(t *testing.T) {
 			p := newTestRunner(t, tt.args.inputJson)
 			got := ToExcel(p, tt.args.params)
 			assert.NotNil(t, got.Artifacts)
+			t.Logf("output file: %s", got.Artifacts[0].FilePath)
 		})
 	}
 }
