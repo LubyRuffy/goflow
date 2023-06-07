@@ -64,6 +64,13 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	defer cancel()
 	fofaCli.(*gofofa.Client).SetContext(ctx)
 
+	total := options.Size
+	count := 0
+	fofaCli.(*gofofa.Client).OnResults = func(results [][]string) {
+		count += len(results)
+		p.SetProgress(float64(count) / float64(total))
+	}
+
 	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields, &gofofa.SecondaryOptions{Full: options.Full})
 	if err != nil {
 		panic(fmt.Errorf("HostSearch failed: %w", err))
@@ -77,6 +84,8 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 	if err != nil {
 		panic(fmt.Errorf("fetchFofa error: %w", err))
 	}
+
+	p.SetProgress(1)
 
 	return &FuncResult{
 		OutFile: fn,
