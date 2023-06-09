@@ -7,6 +7,7 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/weppos/publicsuffix-go/publicsuffix"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -93,6 +94,10 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 				// domain
 				var d *publicsuffix.DomainName
 				d, err = publicsuffix.Parse(u.Hostname())
+				if err != nil {
+					return err
+				}
+				log.Printf("parsing: %s", u.String())
 				fields["domain"] = d.SLD + "." + d.TLD
 				fields["subdomain"] = d.TRD
 				if options.ParseIP {
