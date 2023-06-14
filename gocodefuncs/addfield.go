@@ -53,8 +53,9 @@ func AddField(p Runner, params map[string]interface{}) *FuncResult {
 		} else {
 			switch options.From.Method {
 			case "grep":
+				addValue := ExpendVarWithJsonLine(p, options.From.Value, line)
 				if addRegex == nil {
-					addRegex, err = regexp.Compile(options.From.Value)
+					addRegex, err = regexp.Compile(addValue)
 					if err != nil {
 						return err
 					}
