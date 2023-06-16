@@ -107,6 +107,17 @@ func TestToExcel1(t *testing.T) {
 				inputJson: "{\"ip\":\"122.224.163.198\",\"location\":{\"city\":\"Hangzhou City\",\"country\":\"China\",\"country_code\":\"CN\",\"lat\":\"30.384272\",\"lng\":\"119.987002\",\"province\":\"Zhejiang\",\"source\":\"threatbook.cn/ip\"},\"asn\":{\"source\":\"fofa.info/host\",\"value\":4134},\"org\":{\"source\":\"fofa.info/host\",\"value\":\"Chinanet\"},\"judgements\":{\"value\":[\"Gateway\",\"Exploit\"],\"source\":\"threatbook.cn/ip\"},\"c_title\":[{\"count\":27,\"name\":\"DPTECH ONLINE\",\"source\":\"fofa.info/stats\"},{\"count\":21,\"name\":\"Welcome to tengine!\",\"source\":\"fofa.info/stats\"},{\"count\":20,\"name\":\"域名暂未生效\",\"source\":\"fofa.info/stats\"},{\"count\":18,\"name\":\"建设中\",\"source\":\"fofa.info/stats\"},{\"count\":12,\"name\":\"HTTP状态 404 - 未找到\",\"source\":\"fofa.info/stats\"}],\"ports\":[{\"port\":8999,\"products\":[\"Oracle-JSP\",\"泛微-EMobile\",\"Log4j2\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-11 11:00:00\"},{\"port\":9000,\"products\":[\"泛微-EMobile\",\"Log4j2\",\"NGINX\",\"Oracle-JSP\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-03 21:00:00\"},{\"port\":2223,\"products\":[\"ubuntu-系统\",\"OpenSSH\"],\"protocol\":\"ssh\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-18 07:00:00\"},{\"port\":9090,\"products\":[\"Oracle-JSP\",\"jQuery\",\"泛微-E-Weaver\",\"Log4j2\"],\"protocol\":\"http\",\"source\":\"fofa.info/v1/host\",\"update_time\":\"2022-06-01 06:00:00\"}],\"threatbook_lab\":[{\"confidence\":75,\"expired\":false,\"find_time\":\"2021-10-25 21:30:23\",\"intel_tags\":[],\"intel_types\":[\"Exploit\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-05-31 01:12:26\"},{\"confidence\":80,\"expired\":false,\"find_time\":\"2021-07-26 05:38:17\",\"intel_tags\":[],\"intel_types\":[\"Dynamic IP\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-02-17 07:33:12\"},{\"confidence\":85,\"expired\":false,\"find_time\":\"2020-04-24 02:24:01\",\"intel_tags\":[],\"intel_types\":[\"Gateway\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-05-29 19:19:42\"},{\"confidence\":85,\"expired\":false,\"find_time\":\"2023-04-21 01:15:58\",\"intel_tags\":[[\"CVE-2022-22965\",\"Spring4Exp\"]],\"intel_types\":[\"Exploit\"],\"source\":\"threatbook.cn/ip\",\"update_time\":\"2023-04-21 01:15:57\"}]}",
 			},
 		},
+		{
+			name: "测试json自动格式化， 列表",
+			args: args{
+				params: map[string]interface{}{
+					"rawFormat":  true,
+					"insertPic":  false,
+					"jsonFormat": false,
+				},
+				inputJson: "{\"ips\": [\"123\", \"12345\",\"666\"]}",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

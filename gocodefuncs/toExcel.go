@@ -315,13 +315,24 @@ func jsonFormatToExcel(f *excelize.File, line string, lineNum int) (err error) {
 					return true
 				} else {
 					// 非 object，直接输出
-					err = formatWriteCell(f, sheetName, currentRow, cols, k)
-					if err != nil {
-						return false
-					}
-					err = formatWriteCell(f, sheetName, currentRow, cols+1, v)
-					if err != nil {
-						return false
+					if k.Raw != "" && k.Exists() {
+						err = formatWriteCell(f, sheetName, currentRow, cols, k)
+						if err != nil {
+							return false
+						}
+						err = formatWriteCell(f, sheetName, currentRow, cols+1, v)
+						if err != nil {
+							return false
+						}
+					} else {
+						err = formatWriteCell(f, sheetName, currentRow, cols, key)
+						if err != nil {
+							return false
+						}
+						err = formatWriteCell(f, sheetName, currentRow, cols+1, v)
+						if err != nil {
+							return false
+						}
 					}
 					currentRow += 1
 					return true
