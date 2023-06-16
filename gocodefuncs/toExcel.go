@@ -245,7 +245,14 @@ func formatWriteCell(f *excelize.File, sheetName string, row, cols int, value gj
 func jsonFormatToExcel(f *excelize.File, line string, lineNum int) (err error) {
 	currentRow := 0
 	v := gjson.ParseBytes([]byte(line))
-	sheetName := fmt.Sprintf("Sheet%d", lineNum)
+	rawSheetName := gjson.Get(line, "sheet_name")
+	var sheetName string
+	if rawSheetName.Exists() && rawSheetName.String() != "" {
+		sheetName = rawSheetName.String()
+	} else {
+		sheetName = fmt.Sprintf("Sheet%d", lineNum)
+	}
+
 	index := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
 
