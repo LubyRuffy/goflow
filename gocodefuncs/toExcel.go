@@ -246,13 +246,16 @@ func jsonFormatToExcel(f *excelize.File, line string, lineNum int) (err error) {
 	currentRow := 0
 	v := gjson.ParseBytes([]byte(line))
 	rawSheetName := gjson.Get(line, "sheet_name")
+	log.Printf("got raw sheet name: %s", rawSheetName.String())
 	var sheetName string
 	if rawSheetName.Exists() && rawSheetName.String() != "" {
+		log.Printf("set sheet name to %s", rawSheetName.String())
 		sheetName = rawSheetName.String()
 	} else {
 		sheetName = fmt.Sprintf("Sheet%d", lineNum)
 	}
 
+	log.Printf("start processing sheet name %s", sheetName)
 	index := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
 
