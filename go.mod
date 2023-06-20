@@ -83,4 +83,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.1.12
+replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.2.1
+
+//replace github.com/LubyRuffy/gofofa => ../gofofa

@@ -258,6 +258,9 @@ func jsonFormatToExcel(f *excelize.File, line string, lineNum int) (err error) {
 
 	// 开始遍历 键值 对应关系
 	v.ForEach(func(key, value gjson.Result) bool {
+		if key.String() == "sheet_name" {
+			return true
+		}
 		/**
 		列表形式：
 		 "c_title": [

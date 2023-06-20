@@ -118,6 +118,17 @@ func TestToExcel1(t *testing.T) {
 				inputJson: "{\"ips\": [\"123\", \"12345\",\"666\"]}",
 			},
 		},
+		{
+			name: "测试自动化生成 样本信息",
+			args: args{
+				params: map[string]interface{}{
+					"rawFormat":  true,
+					"insertPic":  false,
+					"jsonFormat": false,
+				},
+				inputJson: "{\"文件信息\":{\"文件名\":\"/tmp/eml_attach_for_scan/865da724f20741496cfa9c9e08a83358.file\",\"文件格式\":\"DOCX\",\"文件大小\":\"90906字节\"},\"样本哈希\":{\"MD5\":\"865da724f20741496cfa9c9e08a83358\",\"SHA-1\":\"cf0ce70640390c36d78b6791f7cba85b2fc55515\",\"SHA-256\":\"af988d92c694d2fdc113154b79f4fbbf8e5e78d0ec026bffedb264522001fba2\"},\"研判标签\":[{\"标签\":\"\",\"来源\":\"ti.360.net/hash_info\"},{\"标签\":\"trojan.\",\"来源\":\"VirusTotal\"}],\"360研判情报\":{\"所属家族\":[],\"恶意软件类型\":[\"Trojan\",\"木马\"],\"其他标签\":[\"Office/Trojan.Generic.GjcATDoA\"],\"威胁类型\":\"Trojan\",\"来源\":\"ti.360.net/hash_info\"},\"微步研判情报\":{\"所属家族\":\"\",\"恶意软件类型\":\"\",\"是否为恶意软件\":\"clean\",\"更新时间\":\"2023-05-18 04:51:06\",\"来源\":\"threatbook.cn/file\"},\"奇安信研判情报\":{\"样本家族\":\"\",\"恶意软件类型\":\"trojan\",\"所属组织\":\"\",\"发现时间\":\"2023-05-17 18:54:48\",\"最后分析时间\":\"2023-06-06 11:48:36\"},\"引擎检测率\":{\"VT\":\"11/63\",\"微步\":\"2/24\"},\"Yara 匹配规则\":[{\"作者\":\"InQuest Labs\",\"描述\":\"This signature identifies Adobe Extensible Metadata Platform (XMP) identifiers embedded within files. Defined as a standard for mapping graphical asset relationships, XMP allows for tracking of both parent-child relationships and individual revisions. There are three categories of identifiers: original document, document, and instance. Generally, XMP data is stored in XML format, updated on save/copy, and embedded within the graphical asset. These identifiers can be used to track both malicious and benign graphics within common Microsoft and Adobe document lures.\",\"来源\":\"https://github.com/InQuest/yara-rules-vt\",\"规则名\":\"Adobe_XMP_Identifier\",\"规则集\":\"Adobe_XMP_Identifier\"}],\"sheet_name\":\"865da724f20741496cfa9c9e08a83358\"}\n",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
