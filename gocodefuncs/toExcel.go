@@ -256,8 +256,12 @@ func jsonFormatToExcel(f *excelize.File, line string, lineNum int) (err error) {
 	}
 
 	log.Printf("start processing sheet name %s", sheetName)
+
 	index := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
+	sheetName = f.GetSheetName(index)
+
+	log.Printf("got sheet num %d, with name %s, start processing", index, sheetName)
 
 	// 开始遍历 键值 对应关系
 	v.ForEach(func(key, value gjson.Result) bool {
