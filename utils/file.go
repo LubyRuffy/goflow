@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -252,6 +253,39 @@ func TarGzFiles(files []string) ([]byte, error) {
 	}
 	// produce gzip
 	if err := zr.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func ZipFiles(files []string) ([]byte, error) {
+	var buf bytes.Buffer
+	zipWriter := zip.NewWriter(&buf)
+
+	for _, file := range files {
+		zipEntry, err := zipWriter.Create(file)
+		if err != nil {
+			log.Printf("cannot create zipEntry when zip file: %s, error: %s", file, err.Error())
+			continue
+		}
+
+		inFile, err := os.Open(file)
+		if err != nil {
+			log.Printf("zip file: fail to open target file %s, error: %s", file, err.Error())
+			continue
+		}
+		defer inFile.Close()
+
+		_, err = io.Copy(zipEntry, inFile)
+		if err != nil {
+			log.Printf("zip file: fail to copy entry for target file %s, error: %s", file, err.Error())
+			continue
+		}
+	}
+
+	// produce tar
+	if err := zipWriter.Close(); err != nil {
 		return nil, err
 	}
 

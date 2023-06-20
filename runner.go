@@ -269,7 +269,7 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 }
 
 // TarFinalOutputs 打包最终输出的json与对应的资源文件
-func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
+func (p *PipeRunner) TarFinalOutputs(tarFunc func(files []string) ([]byte, error)) ([]byte, error) {
 	var files []string
 	var err error
 
@@ -312,7 +312,7 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 
 	// 文件打包
 	if len(files) > 0 {
-		tarGzData, err := utils.TarGzFiles(files)
+		tarGzData, err := tarFunc(files)
 		if err != nil {
 			return nil, err
 		}
@@ -362,7 +362,7 @@ func (p *PipeRunner) LastFileEmpty() bool {
 }
 
 // TarGzAll 打包所有文件
-func (p *PipeRunner) TarGzAll() ([]byte, error) {
+func (p *PipeRunner) TarGzAll(tarFunc func(files []string) ([]byte, error)) ([]byte, error) {
 	var files []string
 	for _, t := range p.Tasks {
 		if t.Result == nil {
@@ -380,7 +380,7 @@ func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	}
 
 	if len(files) > 0 {
-		tarGzData, err := utils.TarGzFiles(files)
+		tarGzData, err := tarFunc(files)
 		if err != nil {
 			return nil, err
 		}
