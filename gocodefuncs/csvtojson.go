@@ -119,7 +119,8 @@ func CSVToJson(p Runner, params map[string]interface{}) *FuncResult {
 	var fn string
 	fn, err = utils.WriteTempFile(".json", func(f *os.File) error {
 		line := ""
-		line, err = sjson.Set(line, sjsonFileName(p.GetLastFile()), records)
+		//line, err = sjson.Set(line, sjsonFileName(p.GetLastFile()), records)
+		line, err = sjson.Set(line, "Sheet1", records)
 		if err != nil {
 			return err
 		}

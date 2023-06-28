@@ -28,7 +28,7 @@ func TestCSVToJson(t *testing.T) {
 	f, err := utils.ReadFirstLineOfFile(fr.OutFile)
 	assert.Nil(t, err)
 	gjson.ParseBytes(f).ForEach(func(key, value gjson.Result) bool {
-		assert.Contains(t, key.String(), "_pipeline_")
+		assert.Equal(t, key.String(), "Sheet1")
 		assert.Equal(t, value.String(), `[["a","b"],["1","2"]]`)
 		return false
 	})
