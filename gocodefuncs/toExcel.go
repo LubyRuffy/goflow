@@ -68,7 +68,11 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 	err = utils.EachLineWithContext(context.TODO(), formattedFile, func(line string) error {
 		lineNum++
 		if options.JsonFormat {
-			// 临时切换
+			err = jsonFormatToExcel(f, line, lineNum)
+			if err != nil {
+				return err
+			}
+		} else if options.RawFormat {
 			v := gjson.ParseBytes([]byte(line))
 			colNo := 'A'
 			v.ForEach(func(key, value gjson.Result) bool {
@@ -120,12 +124,6 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 				}
 				return true
 			})
-		} else if options.RawFormat {
-			// 临时修改
-			err = jsonFormatToExcel(f, line, lineNum)
-			if err != nil {
-				return err
-			}
 		} else {
 			lineNo := 2
 			err = utils.EachLineWithContext(p.GetContext(), formattedFile, func(line string) error {
