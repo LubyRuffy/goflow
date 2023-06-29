@@ -62,6 +62,7 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 			var u *url.URL
 			u, err = url.Parse(utils.FixURL(v.String()))
 			if err != nil {
+				_, err = f.WriteString(line + "\n")
 				return err
 			}
 
@@ -95,6 +96,7 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 				var d *publicsuffix.DomainName
 				d, err = publicsuffix.Parse(u.Hostname())
 				if err != nil {
+					_, err = f.WriteString(line + "\n")
 					return err
 				}
 				log.Printf("parsing: %s", u.String())
@@ -115,6 +117,7 @@ func ParseURL(p Runner, params map[string]interface{}) *FuncResult {
 
 			line, err = sjson.Set(line, options.URLField+"_parsed", fields)
 			if err != nil {
+				_, err = f.WriteString(line + "\n")
 				return err
 			}
 			_, err = f.WriteString(line + "\n")
