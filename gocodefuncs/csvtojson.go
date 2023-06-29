@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"bytes"
 	"encoding/csv"
 	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
@@ -22,13 +23,63 @@ type CSVToJsonParams struct {
 }
 
 func readCsv(f io.Reader) ([][]string, error) {
-	csvReader := csv.NewReader(f)
+	var content bytes.Buffer
+	var utf8Content []byte
+	_, err := io.Copy(&content, f)
+	if err != nil {
+		return nil, err
+	}
+	if isGBK(content.Bytes()) {
+		utf8Content, err = convertGBK2Str(content.Bytes())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		utf8Content = content.Bytes()
+	}
+
+	csvReader := csv.NewReader(bytes.NewReader(utf8Content))
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
 	return records, nil
+}
+
+func convertGBK2Str(gbkStr []byte) ([]byte, error) {
+	//如果是[]byte格式的字符串，可以使用Bytes方法
+	b, err := simplifiedchinese.GBK.NewDecoder().Bytes([]byte(gbkStr))
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func isGBK(data []byte) bool {
+	length := len(data)
+	var i int = 0
+	for i < length {
+		//fmt.Printf("for %x\n", data[i])
+		if data[i] <= 0xff {
+			//编码小于等于127,只有一个字节的编码，兼容ASCII吗
+			i++
+			continue
+		} else {
+			//大于127的使用双字节编码
+			if data[i] >= 0x81 &&
+				data[i] <= 0xfe &&
+				data[i+1] >= 0x40 &&
+				data[i+1] <= 0xfe &&
+				data[i+1] != 0xf7 {
+				i += 2
+				continue
+			} else {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func readCsvFile(filePath string) ([][]string, error) {
