@@ -260,11 +260,18 @@ func TarGzFiles(files []string) ([]byte, error) {
 }
 
 func ZipFiles(files []string) ([]byte, error) {
-	var buf bytes.Buffer
-	zipWriter := zip.NewWriter(&buf)
+	// 创建输出文件
+	outFile, err := os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+"*.zip")
+	if err != nil {
+		return nil, err
+	}
+	defer outFile.Close()
+
+	zipWriter := zip.NewWriter(outFile)
 
 	for _, file := range files {
-		zipEntry, err := zipWriter.Create(file)
+		// 这里压缩文件的路径会默认取 ./filename ,需要改为 base filename： filepath.Base(file)
+		zipEntry, err := zipWriter.Create(filepath.Base(file))
 		if err != nil {
 			log.Printf("cannot create zipEntry when zip file: %s, error: %s", file, err.Error())
 			continue
@@ -285,9 +292,19 @@ func ZipFiles(files []string) ([]byte, error) {
 	}
 
 	// produce tar
-	if err := zipWriter.Close(); err != nil {
+	if err = zipWriter.Close(); err != nil {
 		return nil, err
 	}
 
-	return buf.Bytes(), nil
+	err = outFile.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	fileContent, err := os.ReadFile(outFile.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	return fileContent, nil
 }
