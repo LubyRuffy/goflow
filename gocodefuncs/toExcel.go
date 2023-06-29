@@ -144,6 +144,7 @@ func ToExcel(p Runner, params map[string]interface{}) *FuncResult {
 								file = gjson.Get(line, key.String()).String()
 								err = f.AddPicture("Sheet1", fmt.Sprintf("%c%d", colNo, lineNo), file,
 									`{"autofit": true}`)
+								colNo++
 								if err != nil {
 									return false
 								}
