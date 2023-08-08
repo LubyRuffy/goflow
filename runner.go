@@ -468,7 +468,7 @@ func New() *PipeRunner {
 		{"AddField", gocodefuncs.AddField},
 		{"LoadFile", gocodefuncs.LoadFile},
 		{"FlatArray", gocodefuncs.FlatArray},
-		{"Screenshot", gocodefuncs.Screenshot},
+		//{"Screenshot", gocodefuncs.Screenshot},	// move to agent
 		{"ToExcel", gocodefuncs.ToExcel},
 		{"ToSql", gocodefuncs.ToSql},
 		{"GenData", gocodefuncs.GenData},

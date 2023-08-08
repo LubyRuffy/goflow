@@ -18,6 +18,10 @@ import (
 	"time"
 )
 
+var (
+	defaultUserAgent = "goflow/1.0"
+)
+
 // ExpendVarWithJsonLine 展开变量，除了全局还有json对应的行
 func ExpendVarWithJsonLine(p Runner, value string, jsonLine string) string {
 	return utils.ExpandVarString(value, func(name string) (string, bool) {

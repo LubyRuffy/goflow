@@ -8,8 +8,6 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/brimdata/zed v1.3.0
-	github.com/chromedp/cdproto v0.0.0-20220620034043-93c6adfcda6a
-	github.com/chromedp/chromedp v0.8.2
 	github.com/gammazero/workerpool v1.1.2
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-sql-driver/mysql v1.6.0
@@ -29,7 +27,6 @@ require (
 	github.com/urfave/cli/v2 v2.8.1
 	github.com/weppos/publicsuffix-go v0.15.0
 	github.com/xuri/excelize/v2 v2.6.0
-	golang.org/x/net v0.10.0
 	golang.org/x/text v0.9.0
 )
 
@@ -40,22 +37,16 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/aws/aws-sdk-go v1.44.40 // indirect
 	github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a // indirect
-	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 // indirect
 	github.com/fraugster/parquet-go v0.11.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/itchyny/timefmt-go v0.1.4 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
@@ -77,12 +68,13 @@ require (
 	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.2.1
+replace github.com/LubyRuffy/gofofa => github.com/allukaZod/gofofa v0.2.2
 
 //replace github.com/LubyRuffy/gofofa => ../gofofa

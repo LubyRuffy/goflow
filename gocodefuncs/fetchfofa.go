@@ -71,7 +71,7 @@ func FetchFofa(p Runner, params map[string]interface{}) *FuncResult {
 		p.SetProgress(float64(count) / float64(total))
 	}
 
-	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields, &gofofa.SecondaryOptions{Full: options.Full})
+	res, err = fofaCli.(*gofofa.Client).HostSearch(options.Query, options.Size, fields, gofofa.SearchOptions{Full: options.Full})
 	if err != nil {
 		panic(fmt.Errorf("HostSearch failed: %w", err))
 	}
