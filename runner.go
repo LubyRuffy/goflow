@@ -118,7 +118,12 @@ func (p *PipeRunner) Run(ctx context.Context, code string) (reflect.Value, error
 	p.ctx, p.cancel = context.WithCancel(ctx)
 	v, err := p.gocodeRunner.Run(code)
 	if err != nil {
-		log.Println("run code failed with:\n", err.(interp.Panic).Stack)
+		// 这里打印错误信息
+		if err1, ok := err.(interp.Panic); ok {
+			log.Println("run code failed with:\n", string(err1.Stack))
+		} else {
+			log.Println(err)
+		}
 	}
 	p.HasResult = !p.LastFileEmpty()
 	p.doWebHook(map[string]interface{}{
@@ -264,7 +269,7 @@ func (p *PipeRunner) registerFunctions(funcs ...[]interface{}) {
 }
 
 // TarFinalOutputs 打包最终输出的json与对应的资源文件
-func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
+func (p *PipeRunner) TarFinalOutputs(tarFunc func(files []string) ([]byte, error)) ([]byte, error) {
 	var files []string
 	var err error
 
@@ -307,7 +312,7 @@ func (p *PipeRunner) TarFinalOutputs() ([]byte, error) {
 
 	// 文件打包
 	if len(files) > 0 {
-		tarGzData, err := utils.TarGzFiles(files)
+		tarGzData, err := tarFunc(files)
 		if err != nil {
 			return nil, err
 		}
@@ -357,7 +362,7 @@ func (p *PipeRunner) LastFileEmpty() bool {
 }
 
 // TarGzAll 打包所有文件
-func (p *PipeRunner) TarGzAll() ([]byte, error) {
+func (p *PipeRunner) TarGzAll(tarFunc func(files []string) ([]byte, error)) ([]byte, error) {
 	var files []string
 	for _, t := range p.Tasks {
 		if t.Result == nil {
@@ -375,7 +380,7 @@ func (p *PipeRunner) TarGzAll() ([]byte, error) {
 	}
 
 	if len(files) > 0 {
-		tarGzData, err := utils.TarGzFiles(files)
+		tarGzData, err := tarFunc(files)
 		if err != nil {
 			return nil, err
 		}
@@ -463,7 +468,7 @@ func New() *PipeRunner {
 		{"AddField", gocodefuncs.AddField},
 		{"LoadFile", gocodefuncs.LoadFile},
 		{"FlatArray", gocodefuncs.FlatArray},
-		{"Screenshot", gocodefuncs.Screenshot},
+		//{"Screenshot", gocodefuncs.Screenshot},	// move to agent
 		{"ToExcel", gocodefuncs.ToExcel},
 		{"ToSql", gocodefuncs.ToSql},
 		{"GenData", gocodefuncs.GenData},

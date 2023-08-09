@@ -75,4 +75,15 @@ func TestParseURL(t *testing.T) {
 	assert.Equal(t, "https", gjson.GetBytes(d, "url_parsed.scheme").String())
 
 	//t.Log(string(d))
+
+	data = `{"url":"http://www.cas.cn."}`
+	fr = ParseURL(newTestRunner(t, data), map[string]interface{}{})
+	assert.NotEqual(t, "", fr.OutFile)
+	assert.Equal(t, 0, len(fr.Artifacts))
+	d, err = utils.ReadFirstLineOfFile(fr.OutFile)
+	assert.Nil(t, err)
+	assert.Equal(t, "", gjson.GetBytes(d, "url_parsed.domain").String())
+	assert.Equal(t, "", gjson.GetBytes(d, "url_parsed.subdomain").String())
+	assert.Equal(t, "", gjson.GetBytes(d, "url_parsed.port").String())
+	assert.Equal(t, "", gjson.GetBytes(d, "url_parsed.scheme").String())
 }

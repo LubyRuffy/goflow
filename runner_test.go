@@ -702,7 +702,7 @@ GenerateChart(GetRunner(), map[string]interface{}{
 	assert.True(t, called)
 	assert.Nil(t, err)
 
-	tarGzData, err := p.TarGzAll()
+	tarGzData, err := p.TarGzAll(utils.TarGzFiles)
 	assert.Nil(t, err)
 	assert.True(t, len(tarGzData) > 0)
 
@@ -736,7 +736,7 @@ func TestPipeRunner_TarGzAll(t *testing.T) {
 	_, err := p.Run(context.Background(), code)
 	assert.Nil(t, err)
 
-	tarGzData, err := p.TarGzAll()
+	tarGzData, err := p.TarGzAll(utils.TarGzFiles)
 	assert.Nil(t, err)
 	assert.True(t, len(tarGzData) > 0)
 

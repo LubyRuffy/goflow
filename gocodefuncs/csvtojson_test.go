@@ -1,6 +1,7 @@
 package gocodefuncs
 
 import (
+	"fmt"
 	"github.com/LubyRuffy/goflow/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -28,9 +29,37 @@ func TestCSVToJson(t *testing.T) {
 	f, err := utils.ReadFirstLineOfFile(fr.OutFile)
 	assert.Nil(t, err)
 	gjson.ParseBytes(f).ForEach(func(key, value gjson.Result) bool {
-		assert.Contains(t, key.String(), "_pipeline_")
+		assert.Equal(t, key.String(), "Sheet1")
 		assert.Equal(t, value.String(), `[["a","b"],["1","2"]]`)
 		return false
 	})
 
+}
+
+func Test_readCsvFile(t *testing.T) {
+	type args struct {
+		filePath string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    [][]string
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name:    "csv读取中文乱码修复",
+			args:    args{filePath: "./sample1.csv"},
+			want:    [][]string{{"country", "city"}, {"美国", "北京"}},
+			wantErr: assert.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := readCsvFile(tt.args.filePath)
+			if !tt.wantErr(t, err, fmt.Sprintf("readCsvFile(%v)", tt.args.filePath)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "readCsvFile(%v)", tt.args.filePath)
+		})
+	}
 }

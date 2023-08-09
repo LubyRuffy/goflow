@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -256,4 +257,54 @@ func TarGzFiles(files []string) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func ZipFiles(files []string) ([]byte, error) {
+	// 创建输出文件
+	outFile, err := os.CreateTemp(os.TempDir(), defaultPipeTmpFilePrefix+"*.zip")
+	if err != nil {
+		return nil, err
+	}
+	defer outFile.Close()
+
+	zipWriter := zip.NewWriter(outFile)
+
+	for _, file := range files {
+		// 这里压缩文件的路径会默认取 ./filename ,需要改为 base filename： filepath.Base(file)
+		zipEntry, err := zipWriter.Create(filepath.Base(file))
+		if err != nil {
+			log.Printf("cannot create zipEntry when zip file: %s, error: %s", file, err.Error())
+			continue
+		}
+
+		inFile, err := os.Open(file)
+		if err != nil {
+			log.Printf("zip file: fail to open target file %s, error: %s", file, err.Error())
+			continue
+		}
+		defer inFile.Close()
+
+		_, err = io.Copy(zipEntry, inFile)
+		if err != nil {
+			log.Printf("zip file: fail to copy entry for target file %s, error: %s", file, err.Error())
+			continue
+		}
+	}
+
+	// produce tar
+	if err = zipWriter.Close(); err != nil {
+		return nil, err
+	}
+
+	err = outFile.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	fileContent, err := os.ReadFile(outFile.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	return fileContent, nil
 }
